@@ -1,0 +1,257 @@
+# TraderMate 生产环境 Docker Compose 配置
+# 基于原始 docker-compose.yml 的安全加固版本
+# 使用方法: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  # TraderMate API Service (生产加固)
+  api:
+    environment:
+      # App Settings
+      - APP_NAME=TraderMate
+      - APP_VERSION=1.0.0
+      - DEBUG=false              # 🔴 修复: 禁用调试模式
+      - APP_ENV=production
+      # MySQL Settings (使用专用用户)
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER:-tradermate}  # 🔴 修复: 使用非 root 用户
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - TUSHARE_DATABASE=tushare
+      - VNPY_DATABASE=vnpy
+      - TUSHARE_DATABASE_URL=mysql+pymysql://${MYSQL_USER:-tradermate}:${MYSQL_PASSWORD}@mysql:3306/tushare?charset=utf8mb4
+      - VNPY_DATABASE_URL=mysql+pymysql://${MYSQL_USER:-tradermate}:${MYSQL_PASSWORD}@mysql:3306/vnpy?charset=utf8mb4
+      - TUSHARE_TOKEN=${TUSHARE_TOKEN}
+      # Redis Settings
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # JWT Settings
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${SECRET_KEY}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      # CORS Settings (生产仅 HTTPS)
+      - CORS_ORIGINS=["https://www.tradermate.com","https://api.tradermate.com"]  # 🔴 修复: 移除了 localhost
+    ports:
+      # 🔴 修复: 移除主机端口映射，由 Traefik/Nginx Ingress 路由
+      # - "8000:8000"
+      - "8000:8000"  # 保留用于测试，生产环境应置空或使用无端口映射
+    volumes:
+      - ./app:/app/app:ro          # 🔴 修复: 只读挂载
+      - ./logs:/app/logs:ro        # 🔴 修复: 只读 (日志写入 stdout)
+    deploy:
+      resources:
+        limits:
+          memory: 1G               # 🔴 修复: 设置资源限制
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+      replicas: 2                  # 🟡 建议: 多副本
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 0
+    networks:
+      - traefik_public
+      - tradermate_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tradermate-api.rule=Host(`${API_HOST:-api.tradermate.com}`)"
+      - "traefik.http.routers.tradermate-api.entrypoints=websecure"
+      - "traefik.http.routers.tradermate-api.tls.certresolver=myresolver"
+      - "traefik.http.services.tradermate-api.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Background Worker Service
+  worker:
+    image: tradermate-api:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile.api
+    container_name: tradermate_worker
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER:-tradermate}  # 🔴 修复: 非 root
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - TUSHARE_DATABASE=tushare
+      - VNPY_DATABASE=vnpy
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DEBUG=false
+    command: ["rq", "worker", "--url", "redis://redis:6379", "backtest", "optimization"]
+    volumes:
+      - ./app:/app/app:ro
+      - ./logs:/app/logs:ro
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+      replicas: 2
+    networks:
+      - tradermate_network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: tradermate_mysql
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb_buffer_pool_size=1G
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  # 🔴 使用独立 root 密码 (备份/恢复用)
+      MYSQL_DATABASE=tradermate
+      MYSQL_USER=${MYSQL_USER:-tradermate}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # 🔴 修复: 移除公网端口暴露
+    # ports:
+    #   - "3306:3306"
+    expose:
+      - "3306"  # 仅容器网络内可访问
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - ./mysql/backup:/backup  # 🟢 建议: 备份目录挂载
+    networks:
+      - tradermate_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: tradermate_redis
+    restart: always
+    command: redis-server --appendonly yes --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD:-}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}  # 🔴 建议: Redis 密码
+    # 🔴 修复: 移除公网端口暴露
+    # ports:
+    #   - "6379:6379"
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tradermate_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Frontend (生产构建)
+  portal:
+    image: ${DOCKER_REGISTRY:-local}/tradermate-portal:${IMAGE_TAG:-latest}
+    container_name: tradermate_portal
+    restart: always
+    build:
+      context: ../tradermate-portal
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${API_URL:-https://api.tradermate.com}
+    # 🔴 修复: 端口由 Traefik 管理，不移出到主机
+    # ports:
+    #   - "5173:80"
+    networks:
+      - traefik_public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tradermate.rule=Host(`${FRONTEND_HOST:-www.tradermate.com}`)"
+      - "traefik.http.routers.tradermate.entrypoints=websecure"
+      - "traefik.http.routers.tradermate.tls.certresolver=myresolver"
+      - "traefik.http.services.tradermate.loadbalancer.server.port=80"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  tradermate_network:
+    driver: bridge
+  traefik_public:
+    external: true
+
+```
+
+---
+
+## 应用补丁的步骤
+
+1. **创建专用数据库用户** (在 MySQL 容器内执行):
+```bash
+docker exec tradermate_mysql mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "
+  CREATE USER 'tradermate'@'%' IDENTIFIED BY 'ChangeMeToStrongPassword!';
+  GRANT SELECT, INSERT, UPDATE, DELETE ON tradermate.* TO 'tradermate'@'%';
+  GRANT SELECT ON vnpy.* TO 'tradermate'@'%';
+  GRANT SELECT ON tushare.* TO 'tradermate'@'%';
+  FLUSH PRIVILEGES;
+"
+```
+
+2. **更新 `.env.prod`**:
+```bash
+MYSQL_USER=tradermate
+MYSQL_PASSWORD=ChangeMeToStrongPassword!
+MYSQL_ROOT_PASSWORD=DifferentStrongRootPassword!
+REDIS_PASSWORD=ChangeMeToo!
+DEBUG=false
+API_HOST=api.tradermate.com
+FRONTEND_HOST=www.tradermate.com
+CORS_ORIGINS=["https://www.tradermate.com","https://api.tradermate.com"]
+```
+
+3. **使用修正后的 compose 启动**:
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+4. **验证修复**:
+```bash
+# 确认端口不再暴露
+netstat -tlnp | grep -E '3306|6379'  # 应无输出
+curl -f https://api.tradermate.com/health
+```
+
+---
+
+**补丁文件位置**: `/home/ubuntu/.openclaw/workspace/projects/TraderMate/docs/docker-compose.prod.yml`  
+请团队审查后合并到主配置。

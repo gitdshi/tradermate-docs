@@ -1,0 +1,776 @@
+openapi: 3.0.3
+info:
+  title: TraderMate API - Phase 7 V1
+  version: "1.0.0"
+  description: |
+    OpenAPI specification for TraderMate Phase 7 V1 endpoints.
+    Scope: Portfolio (read-only), Analytics (dashboard), Optimization (submit+status).
+  contact:
+    name: TraderMate Team
+    email: dev@tradermate.example.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8000/api
+    description: Development server
+  - url: https://api.tradermate.example.com/api
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Portfolio
+    description: Portfolio holdings and trade history (read-only)
+  - name: Analytics
+    description: Portfolio performance metrics and dashboard
+  - name: Optimization
+    description: Parameter optimization job submission and status
+
+paths:
+  /portfolio/positions:
+    get:
+      tags:
+        - Portfolio
+      summary: Get current holdings
+      description: |
+        Retrieve all current open positions for the authenticated user.
+        Positions include symbol, quantity, average cost, current market price,
+        market value, and unrealized P&L.
+      operationId: getPositions
+      responses:
+        '200':
+          description: Successfully retrieved positions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  positions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Position'
+                  summary:
+                    $ref: '#/components/schemas/PositionSummary'
+              example:
+                positions:
+                  - symbol: "000001.SZ"
+                    symbol_name: "平安银行"
+                    quantity: 1000
+                    avg_price: 12.50
+                    current_price: 13.20
+                    market_value: 13200.00
+                    unrealized_pnl: 700.00
+                    unrealized_pnl_pct: 0.056
+                    opened_at: "2024-02-01T10:30:00Z"
+                    updated_at: "2024-03-09T04:00:00Z"
+                  - symbol: "600519.SS"
+                    symbol_name: "贵州茅台"
+                    quantity: 100
+                    avg_price: 1650.00
+                    current_price: 1680.50
+                    market_value: 168050.00
+                    unrealized_pnl: 3050.00
+                    unrealized_pnl_pct: 0.0185
+                    opened_at: "2024-01-15T09:15:00Z"
+                    updated_at: "2024-03-09T04:00:00Z"
+                summary:
+                  total_market_value: 460000.00
+                  total_unrealized_pnl: 12500.00
+                  position_count: 5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+        - BearerAuth: []
+
+  /analytics/dashboard:
+    get:
+      tags:
+        - Analytics
+      summary: Get dashboard metrics
+      description: |
+        Retrieve aggregated portfolio performance metrics for dashboard display.
+        Includes summary statistics, allocation breakdown, performance time-series,
+        and key risk indicators.
+      operationId: getDashboard
+      parameters:
+        - name: date_range
+          in: query
+          description: Date range for performance calculation
+          required: false
+          schema:
+            type: string
+            enum:
+              - 1D
+              - 1W
+              - 1M
+              - 3M
+              - 6M
+              - 1Y
+              - ALL
+            default: 1M
+        - name: start_date
+          in: query
+          description: Start date (ISO 8601) - overrides date_range if provided
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: End date (ISO 8601, defaults to today) - overrides date_range if provided
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Dashboard metrics successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    $ref: '#/components/schemas/SummaryMetrics'
+                  allocation:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Allocation'
+                  performance:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PerformancePoint'
+                  risk_metrics:
+                    $ref: '#/components/schemas/RiskMetrics'
+              example:
+                summary:
+                  total_market_value: 1500000.00
+                  total_pnl: 125000.00
+                  pnl_percentage: 0.0912
+                  day_pnl: 3500.00
+                  sharpe_ratio: 1.45
+                allocation:
+                  - label: "科技"
+                    value: 500000.00
+                    percentage: 0.33
+                  - label: "金融"
+                    value: 300000.00
+                    percentage: 0.20
+                  - label: "消费"
+                    value: 250000.00
+                    percentage: 0.17
+                performance:
+                  - date: "2024-01-01"
+                    portfolio: 1000000.00
+                    benchmark: 1000000.00
+                  - date: "2024-02-01"
+                    portfolio: 1050000.00
+                    benchmark: 1020000.00
+                risk_metrics:
+                  volatility: 0.185
+                  max_drawdown: -0.085
+                  var_95: 25000.00
+                  sharpe_ratio: 1.45
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+        - BearerAuth: []
+
+  /optimization:
+    post:
+      tags:
+        - Optimization
+      summary: Submit optimization job
+      description: |
+        Submit a parameter optimization job for a strategy.
+        The job is queued for async processing; use `GET /optimization/{job_id}`
+        to check status and retrieve results.
+      operationId: submitOptimization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - strategy_class
+                - symbol
+                - start_date
+                - end_date
+                - initial_capital
+                - param_ranges
+              properties:
+                strategy_class:
+                  type: string
+                  description: Strategy class name (must exist in codebase)
+                  example: "TripleMAStrategy"
+                strategy_name:
+                  type: string
+                  description: Human-readable job name
+                  example: "Triple MA Optimization"
+                  default: "Optimization"
+                symbol:
+                  type: string
+                  description: Trading symbol (e.g., 000001.SZ)
+                  example: "000001.SZ"
+                start_date:
+                  type: string
+                  format: date
+                  description: Backtest start date
+                  example: "2020-01-01"
+                end_date:
+                  type: string
+                  format: date
+                  description: Backtest end date
+                  example: "2023-12-31"
+                initial_capital:
+                  type: number
+                  format: float
+                  description: Starting capital
+                  example: 100000.00
+                  minimum: 1000
+                method:
+                  type: string
+                  description: Optimization algorithm
+                  enum:
+                    - genetic
+                    - grid
+                  default: genetic
+                population_size:
+                  type: integer
+                  description: Population size for genetic algorithm
+                  minimum: 10
+                  maximum: 1000
+                  default: 100
+                generations:
+                  type: integer
+                  description: Number of generations (genetic only)
+                  minimum: 1
+                  maximum: 200
+                  default: 50
+                param_ranges:
+                  type: object
+                  description: Parameter search ranges (min/max/step for each param)
+                  additionalProperties:
+                    type: object
+                    properties:
+                      min:
+                        type: number
+                        description: Minimum value
+                      max:
+                        type: number
+                        description: Maximum value
+                      step:
+                        type: number
+                        description: Step size (grid search only)
+                    required:
+                      - min
+                      - max
+                  example:
+                    fast_window:
+                      min: 5
+                      max: 20
+                      step: 1
+                    slow_window:
+                      min: 20
+                      max: 60
+                      step: 5
+                constraints:
+                  type: object
+                  description: Optional logical constraints between parameters
+                  additionalProperties:
+                    type: boolean
+                  example:
+                    "fast_window < slow_window": true
+      responses:
+        '202':
+          description: Job accepted and queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                    description: Unique job identifier
+                    example: "opt-abc123def456"
+                  status:
+                    type: string
+                    enum:
+                      - queued
+                    description: Initial job status
+                    example: "queued"
+              example:
+                job_id: "opt-5f8e3a1b9c2d"
+                status: "queued"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Job limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "JobLimitExceeded"
+                message: "Maximum 3 concurrent optimization jobs per user"
+                details:
+                  max_jobs: 3
+                  current_jobs: 3
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+        - BearerAuth: []
+
+  /optimization/{job_id}:
+    get:
+      tags:
+        - Optimization
+      summary: Get optimization job status
+      description: |
+        Retrieve the status and results of an optimization job.
+        Poll this endpoint to check progress and fetch final results.
+      operationId: getOptimizationJob
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          description: Job identifier (from submission response)
+          schema:
+            type: string
+            example: "opt-5f8e3a1b9c2d"
+      responses:
+        '200':
+          description: Job status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                  user_id:
+                    type: integer
+                    description: Owner of the job (for auth verification)
+                  strategy_class:
+                    type: string
+                  symbol:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - queued
+                      - running
+                      - completed
+                      - failed
+                      - cancelled
+                  progress:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                    description: Completion percentage (0-100)
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                  best_parameters:
+                    type: object
+                    description: Best parameter set (only if status == 'completed')
+                    additionalProperties:
+                      type: number
+                    example:
+                      fast_window: 12
+                      slow_window: 28
+                  best_fitness:
+                    type: number
+                    format: float
+                    description: Fitness score of best result (only if completed)
+                    example: 1.85
+                  all_results:
+                    type: array
+                    description: Top results (may be truncated)
+                    items:
+                      $ref: '#/components/schemas/RankedResult'
+                    example:
+                      - rank: 1
+                        parameters:
+                          fast_window: 12
+                          slow_window: 28
+                        metrics:
+                          sharpe_ratio: 1.85
+                          total_return: 0.42
+                          max_drawdown: -0.08
+                      - rank: 2
+                        parameters:
+                          fast_window: 10
+                          slow_window: 30
+                        metrics:
+                          sharpe_ratio: 1.82
+                          total_return: 0.40
+                          max_drawdown: -0.09
+                  error_message:
+                    type: string
+                    description: Error details (only if status in ('failed', 'cancelled'))
+                required:
+                  - job_id
+                  - user_id
+                  - strategy_class
+                  - symbol
+                  - status
+                  - progress
+                  - created_at
+                  - updated_at
+              example:
+                job_id: "opt-5f8e3a1b9c2d"
+                user_id: 42
+                strategy_class: "TripleMAStrategy"
+                symbol: "000001.SZ"
+                status: "completed"
+                progress: 100
+                created_at: "2024-03-09T04:00:00Z"
+                updated_at: "2024-03-09T04:45:00Z"
+                best_parameters:
+                  fast_window: 12
+                  slow_window: 28
+                best_fitness: 1.85
+                all_results:
+                  - rank: 1
+                    parameters:
+                      fast_window: 12
+                      slow_window: 28
+                    metrics:
+                      sharpe_ratio: 1.85
+                      total_return: 0.42
+                      max_drawdown: -0.08
+        '404':
+              description: Job not found
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Error'
+                  example:
+                    error: "JobNotFound"
+                    message: "Optimization job not found or access denied"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+        - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Position:
+      type: object
+      properties:
+        symbol:
+          type: string
+          description: Trading symbol
+          example: "000001.SZ"
+        symbol_name:
+          type: string
+          description: Human-readable company name
+          example: "平安银行"
+        quantity:
+          type: integer
+          description: Number of shares held
+          example: 1000
+        avg_price:
+          type: number
+          format: float
+          description: Weighted average entry price
+          example: 12.50
+        current_price:
+          type: number
+          format: float
+          description: Latest market price
+          example: 13.20
+        market_value:
+          type: number
+          format: float
+          description: Current market value (quantity * current_price)
+          example: 13200.00
+        unrealized_pnl:
+          type: number
+          format: float
+          description: Unrealized profit/loss
+          example: 700.00
+        unrealized_pnl_pct:
+          type: number
+          format: float
+          description: Unrealized P&L as percentage
+          example: 0.056
+        opened_at:
+          type: string
+          format: date-time
+          description: Position open timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last position update timestamp
+      required:
+        - symbol
+        - quantity
+        - avg_price
+        - current_price
+        - market_value
+        - unrealized_pnl
+
+    PositionSummary:
+      type: object
+      properties:
+        total_market_value:
+          type: number
+          format: float
+        total_unrealized_pnl:
+          type: number
+          format: float
+        position_count:
+          type: integer
+      required:
+        - total_market_value
+        - total_unrealized_pnl
+        - position_count
+
+    SummaryMetrics:
+      type: object
+      properties:
+        total_market_value:
+          type: number
+          format: float
+          description: Total portfolio market value
+        total_pnl:
+          type: number
+          format: float
+          description: Total realized + unrealized P&L
+        pnl_percentage:
+          type: number
+          format: float
+          description: Total P&L as percentage of initial capital
+        day_pnl:
+          type: number
+          format: float
+          description: Today's P&L
+        sharpe_ratio:
+          type: number
+          format: float
+          description: Sharpe ratio over selected period
+      required:
+        - total_market_value
+        - total_pnl
+        - pnl_percentage
+        - day_pnl
+
+    Allocation:
+      type: object
+      properties:
+        label:
+          type: string
+          description: Allocation category (sector, symbol, strategy, etc.)
+          example: "科技"
+        value:
+          type: number
+          format: float
+          description: Monetary value
+        percentage:
+          type: number
+          format: float
+          description: Fraction of total (0-1)
+      required:
+        - label
+        - value
+        - percentage
+
+    PerformancePoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Date
+        portfolio:
+          type: number
+          format: float
+          description: Portfolio value on this date
+        benchmark:
+          type: number
+          format: float
+          description: Benchmark value (optional)
+      required:
+        - date
+        - portfolio
+
+    RiskMetrics:
+      type: object
+      properties:
+        volatility:
+          type: number
+          format: float
+          description: Annualized volatility (standard deviation of returns)
+          example: 0.185
+        max_drawdown:
+          type: number
+          format: float
+          description: Maximum peak-to-trough decline
+          example: -0.085
+        var_95:
+          type: number
+          format: float
+          description: Value at Risk (95% confidence, 1-day)
+          example: 25000.00
+        sharpe_ratio:
+          type: number
+          format: float
+          description: Risk-adjusted return ratio
+          example: 1.45
+      required:
+        - volatility
+        - max_drawdown
+        - var_95
+        - sharpe_ratio
+
+    RankedResult:
+      type: object
+      properties:
+        rank:
+          type: integer
+          description: Ranking (1 = best)
+          minimum: 1
+        parameters:
+          type: object
+          description: Parameter values for this result
+          additionalProperties:
+            type: number
+        metrics:
+          type: object
+          description: Performance metrics
+          properties:
+            sharpe_ratio:
+              type: number
+              format: float
+            total_return:
+              type: number
+              format: float
+            max_drawdown:
+              type: number
+              format: float
+          required:
+            - sharpe_ratio
+            - total_return
+            - max_drawdown
+      required:
+        - rank
+        - parameters
+        - metrics
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code (machine-readable)
+        message:
+          type: string
+          description: Human-readable error description
+        details:
+          type: object
+          description: Additional error context (field errors, etc.)
+        request_id:
+          type: string
+          description: Correlation ID for debugging
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - error
+        - message
+
+  responses:
+    Unauthorized:
+      description: Invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Unauthorized"
+            message: "Invalid or missing bearer token"
+            request_id: "req_abc123"
+            timestamp: "2026-03-09T04:30:00Z"
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Forbidden"
+            message: "You do not have permission to access this resource"
+            request_id: "req_def456"
+            timestamp: "2026-03-09T04:30:00Z"
+
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "ValidationError"
+            message: "Request validation failed"
+            details:
+              param_ranges:
+                - "fast_window: min must be less than max"
+            request_id: "req_ghi789"
+            timestamp: "2026-03-09T04:30:00Z"
+
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "RateLimited"
+            message: "Rate limit exceeded, please retry after 60 seconds"
+            details:
+              retry_after: 60
+              limit: 100
+              window: 60
+            request_id: "req_jkl012"
+            timestamp: "2026-03-09T04:30:00Z"
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "InternalServerError"
+            message: "An unexpected error occurred"
+            request_id: "req_mno345"
+            timestamp: "2026-03-09T04:30:00Z"
