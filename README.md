@@ -11,3 +11,7 @@ Single source of truth for TraderMate documentation.
 ## Policy
 - This repository is **public**. Do not commit secrets (tokens, passwords, internal IPs, admin creds).
 - Internal-only notes and task tracking remain local under `TraderMate/docs/project-management/` and are **not** included here.
+
+## Security
+
+See .
