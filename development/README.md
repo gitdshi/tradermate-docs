@@ -47,7 +47,7 @@
 
 - [部署运维](../deployment/README.md) - 生产环境部署和运维
 - [架构设计](../architecture/README.md) - 系统架构和技术决策
-- [设计文档](../design/README.md) - UI/UX设计和API契约
+- API契约与架构: `../architecture/API_CONTRACT_V1.yaml`（OpenAPI） + `../architecture/SYSTEM_ARCHITECTURE.md`
 - [测试文档](../testing/README.md) - 测试策略和验证报告
 - [项目任务](../project-management/TASKS.md) - 开发任务跟踪
 

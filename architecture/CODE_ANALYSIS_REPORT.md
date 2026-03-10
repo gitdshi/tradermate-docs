@@ -200,7 +200,7 @@ npm run dev
 
 ### 5.1 API缺失清单
 
-根据 `../design/API_CONTRACT.md`，Phase 7定义的以下API**尚未实现**:
+根据 `API_CONTRACT_V1.yaml`，Phase 7定义的以下API**尚未实现**:
 
 #### Analytics API (3 endpoints)
 - ❌ `GET /api/analytics/dashboard`
@@ -363,7 +363,7 @@ npm run dev
 ### 立即执行 (C-002期间)
 1. ✅ 完成本报告
 2. ✅ 提交PHASE7_IMPLEMENTATION_PLAN.md详细任务分解
-3. 🔄 与Designer确认 [API_CONTRACT.md](../design/API_CONTRACT.md) 的优先级和最小集
+3. 🔄 确认 `API_CONTRACT_V1.yaml` 的优先级和最小集（如 Phase 7 已移除，可标记为 archive/optional）
 4. 🔄 与Tester沟通测试策略和fixture数据需求
 
 ### 短期 (1周内)

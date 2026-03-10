@@ -2,7 +2,7 @@
 
 **Prepared by**: Coder Agent (Mark)  
 **Date**: 2026-03-03  
-**Based on**: [API_CONTRACT.md](../design/API_CONTRACT.md) v1.0  
+**Based on**: `API_CONTRACT_V1.yaml` (OpenAPI 3.0)
 **Status**: Draft - Awaiting Approval
 
 ---
@@ -219,7 +219,7 @@ CREATE TABLE account_balance (
 ### Phase 7e: Integration & Testing (2 days)
 
 #### Day 11-12: System Validation
-- [ ] **API Contract Validation**: Verify all implemented endpoints match [API_CONTRACT.md](../design/API_CONTRACT.md)
+- [ ] **API Contract Validation**: Verify all implemented endpoints match `API_CONTRACT_V1.yaml`
 - [ ] **End-to-End Tests**: Frontend pages (Analytics, Portfolio, Optimization) can successfully call APIs
 - [ ] **Performance**: 
   - Add DB indexes: `positions(user_id, symbol)`, `trades(user_id, open_time)`
@@ -309,7 +309,7 @@ If full scope is too large, implement **only the following**:
 - Timeline: Start 2026-03-05, finish 2026-03-11
 
 **Option B**: Approve **Full Phase 7** (12.5 days)
-- Pros: Complete functionality, aligned with [API_CONTRACT.md](../design/API_CONTRACT.md)
+- Pros: Complete functionality, aligned with `API_CONTRACT_V1.yaml`
 - Cons: Blocks frontend for ~2.5 weeks; higher complexity
 - Timeline: Start 2026-03-05, finish ~2026-03-21
 

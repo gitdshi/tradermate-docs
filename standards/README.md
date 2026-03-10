@@ -122,7 +122,7 @@ lychee docs/**/*.md
 
 - **内部链接**: 使用相对路径
   ```markdown
-  [API契约](../design/API_CONTRACT.md)
+  `../architecture/API_CONTRACT_V1.yaml`
   [部署手册](./DEPLOYMENT_RUNBOOKS.md)
   ```
 

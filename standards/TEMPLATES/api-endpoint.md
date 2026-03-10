@@ -191,7 +191,7 @@ test('user can create strategy from UI', async ({ page }) => {
 
 ## 相关链接
 
-- [API契约](../design/API_CONTRACT.md) - 设计阶段的接口定义
+- API契约（OpenAPI）：`../architecture/API_CONTRACT_V1.yaml`
 - [API概览](../development/API_README.md) - 所有端点快速导航
 - [策略服务代码](../../app/api/services/strategy_service.py) - 实现代码
 - [策略DAO](../../app/domains/strategies/dao/strategy_dao.py) - 数据访问层

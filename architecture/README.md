@@ -44,7 +44,7 @@
 ### "准备开始Phase 7开发"
 1. 通读 [PHASE7_IMPLEMENTATION_PLAN.md](./PHASE7_IMPLEMENTATION_PLAN.md) 完整计划
 2. 参考 [CODE_ANALYSIS_REPORT.md](./CODE_ANALYSIS_REPORT.md) 的架构建议
-3. 查看 [API_CONTRACT.md](../design/API_CONTRACT.md) 了解接口设计
+3. 查看 `API_CONTRACT_V1.yaml` 了解接口设计（OpenAPI 3.0）
 
 ### "进行代码审查"
 1. 阅读 [CODE_REVIEWS.md](./CODE_REVIEWS.md) 审查标准
@@ -66,7 +66,7 @@
 
 ## 🔗 相关文档
 
-- [设计文档](../design/README.md) - UI/UX设计规范
+- UI/UX 设计资料：已从 public docs repo 收敛删除（如需保留请放到独立设计仓库或私有空间）
 - [开发指南](../development/README.md) - 环境设置和API
 - [项目管理](../project-management/TASKS.md) - 任务跟踪
 

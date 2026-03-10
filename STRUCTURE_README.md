@@ -28,7 +28,9 @@ docs/
 ├── README.md                          # 📌 主入口（导航中心）
 ├── STRUCTURE_README.md               # 📌 本文件（结构规范）
 │
-├── design/                           # 🎨 设计文档 (Designer 负责)
+# (design/ removed)
+# NOTE: UI/UX design materials are not stored in this public docs repo.
+# If needed, keep them in a dedicated design repo or private space.
 │   ├── UI_DESIGN_SYSTEM.md          # 视觉设计系统
 │   ├── WIREFRAMES.md                # 页面线框图
 │   ├── COMPONENT_SPECS.md           # UI组件规格
@@ -145,7 +147,7 @@ docs/
 
 | 文档类型 | 目标目录 | 示例 |
 |---------|---------|------|
-| UI设计、线框图、设计系统 | `design/` | UI_DESIGN_SYSTEM.md |
+| UI设计、线框图、设计系统 | (removed) | keep in a dedicated design repo / private space |
 | 开发环境、API、前端技术 | `development/` | LOCAL_DEVELOPMENT_SETUP.md |
 | 部署、监控、运维操作 | `deployment/` | DEPLOYMENT_RUNBOOKS.md |
 | 架构图、技术债务、代码分析 | `architecture/` | CODE_ANALYSIS_REPORT.md |
@@ -172,7 +174,7 @@ docs/
 - [项目记忆](project-management/PROJECT_MEMORY.md)
 - [API概览](development/API_README.md)
 - [部署指南](deployment/DEPLOYMENT_RUNBOOKS.md)
-- [设计契约](../design/API_CONTRACT.md)  # 从子目录往上
+- API 契约（OpenAPI）：`architecture/API_CONTRACT_V1.yaml`
 ```
 
 #### 外部链接
@@ -239,7 +241,7 @@ docs/
 - 相关链接（其他目录）
 - 维护者信息
 
-**示例模板** (`docs/design/README.md`):
+**示例模板**: (design section removed from public docs repo)
 ```markdown
 # Design 设计文档
 
@@ -339,7 +341,7 @@ docs/
 
 | 目录 | 负责Agent | 文档类型 | 受众 |
 |------|----------|----------|------|
-| `design/` | @designer | UI/UX设计、API契约 | 设计师、前端开发 |
+| (design removed) | - | UI/UX design materials are kept outside this public repo | - |
 | `development/` | @coder, @tester | 开发环境、API、前端技术 | 开发者、测试 |
 | `deployment/` | @operator | 部署、监控、安全、运维 | DevOps、运维 |
 | `architecture/` | @coder | 系统架构、技术债务、代码审查 | 开发者、架构师 |
@@ -462,11 +464,11 @@ answer:
 question: 新的设计token定义，放哪里？
 
 answer:
-1. 设计规范 → design/
+1. 设计规范 → (removed from this public docs repo; keep in dedicated design repo/private space)
 2. 文件名:
    - 如果是补充现有UI_DESIGN_SYSTEM.md，直接编辑该文件
-   - 如果是新主题（如"暗色模式规范"），创建 design/DARK_MODE_SPEC.md
-3. 更新 design/README.md
+   - 如果是新主题（如"暗色模式规范"），在设计仓库中创建对应文档（本仓库不存放 design/）
+3. 更新设计仓库的 README（本仓库不存放 design/）
 ```
 
 ---
@@ -510,7 +512,7 @@ answer:
 ✅ 如何开发？                development/README.md
 ✅ 如何部署？                deployment/README.md
 ✅ 系统架构？                architecture/README.md
-✅ 设计规范？                design/README.md
+✅ 设计规范？                (design removed; keep in dedicated design repo)
 ✅ API文档？                 development/api/ 或 development/API_README.md
 ✅ 测试报告？                testing/validation-reports/
 ✅ 当前任务？                project-management/TASKS.md
