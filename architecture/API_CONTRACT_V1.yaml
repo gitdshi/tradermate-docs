@@ -1,3 +1,5 @@
+# Historical snapshot: Phase 7 API contract (not implemented in current codebase).
+# Use FastAPI /docs for the current API surface.
 openapi: 3.0.3
 info:
   title: TraderMate API - Phase 7 V1

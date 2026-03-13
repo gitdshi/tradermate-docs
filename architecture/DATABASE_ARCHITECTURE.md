@@ -1,187 +1,65 @@
-# TraderMate Database Architecture
+# Database Architecture
 
 ## Overview
 
-TraderMate uses a two-database architecture to separate concerns:
+TraderMate uses a single MySQL instance with multiple logical databases:
 
-1. **tushare** - Raw market data from Tushare API (source of truth)
-2. **vnpy** - Formatted data for vnpy trading platform (derived data)
+1. **tradermate** - core business data (users, strategies, backtests, jobs, sync status)
+2. **tushare** - raw market data from Tushare
+3. **akshare** - index and trade calendar data from AkShare
+4. **vnpy** - VNpy-compatible bar tables (optional sync target)
 
-## Database Structure
+All connections share the same MySQL host/port/user/password from `.env`.
 
-### tushare Database
+## Key Tables (Non-Exhaustive)
 
-This database stores raw market data fetched from the Tushare API.
+### tradermate
+- `users`
+- `strategies`
+- `backtest_history`
+- `jobs`
+- `data_sync_status`
+- `init_progress`
 
-**Main Tables:**
-- `stock_basic` - Stock basic information (company, exchange, industry)
-- `stock_daily` - Daily OHLCV data (primary market data)
-- `adj_factor` - Price adjustment factors
-- `daily_basic` - Daily derived indicators (PE, PB, turnover, etc.)
-- `stock_moneyflow` - Capital flow data
-- `stock_dividend` - Dividend information
-- `top10_holders` - Major shareholder data
-- `stock_margin` - Margin trading data
-- `ingest_audit` - API call audit log
-- `sync_log` - Daily sync job log
+### tushare
+- `stock_basic`
+- `stock_daily`
+- `adj_factor`
+- `daily_basic`
+- `stock_dividend`
+- `top10_holders`
+- `ingest_audit`
 
-### vnpy Database
+### akshare
+- `index_daily`
+- `trade_cal`
 
-This database stores data in vnpy's expected format for backtesting and trading.
-
-**Main Tables:**
-- `dbbardata` - Bar data (OHLCV) in vnpy format
-- `dbbaroverview` - Summary of available bar data
-- `dbtickdata` - Tick data in vnpy format
-- `dbtickoverview` - Summary of available tick data
-- `sync_status` - Track sync progress from tushare
-
-## Data Flow
-
-```
-Tushare API
-    │
-    ▼
-┌─────────────────┐
-│  tushare   │  ← Raw data ingestion
-│   (MySQL DB)    │
-└────────┬────────┘
-         │
-         │  Sync daemon / Import script
-         ▼
-┌─────────────────┐
-│   vnpy     │  ← Formatted for vnpy
-│   (MySQL DB)    │
-└────────┬────────┘
-         │
-         ▼
-    vnpy Platform
-    (Backtest/Trade)
-```
+### vnpy
+- `dbbardata`
+- `dbbaroverview`
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `TUSHARE_DATABASE_URL` | `mysql+pymysql://root:password@127.0.0.1/tushare?charset=utf8mb4` | Tushare database connection |
-| `VNPY_DATABASE_URL` | `mysql+pymysql://root:password@127.0.0.1/vnpy?charset=utf8mb4` | vnpy database connection |
-| `TUSHARE_TOKEN` | (required) | Tushare API token |
-| `SYNC_HOUR` | `18` | Hour to run daily sync (24h format) |
-| `SYNC_MINUTE` | `0` | Minute to run daily sync |
-| `BATCH_SIZE` | `100` | Symbols to process per batch |
-
-## Usage
-
-### 1. Initial Data Ingestion
-
-Fetch stock list and historical data from Tushare:
+See `development/ENV_VARIABLES_REFERENCE.md`. Relevant DB vars:
 
 ```bash
-# Set environment variables
-export TUSHARE_TOKEN=your_token_here
-
-# Ingest stock basic info
-INGEST_STOCK_BASIC=1 python app/datasync/service/tushare_ingest.py
-
-# Ingest all daily data
-INGEST_ALL_DAILY=1 python app/datasync/service/tushare_ingest.py
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=...
+TRADERMATE_DB=tradermate   # optional override
+TUSHARE_DB=tushare         # optional override
 ```
 
-### 2. Sync to vnpy
+`akshare` and `vnpy` database names are fixed by init scripts.
 
-Transfer data from tushare to vnpy.
+## Initialization
 
-The previous one-off script `scripts/import_tushare_to_vnpy.py` has been removed. Use the datasync service to sync formatted data into the vnpy database:
+Schemas live under `tradermate/mysql/init/` and are applied by:
 
 ```bash
-# Sync vnpy from datasync (no Tushare fetch)
-.venv/bin/python3 app/datasync/service/data_sync_daemon.py --sync-vnpy
-
-# Or use the lifecycle script which supports vnpy sync
-./scripts/datasync_service.sh start|stop|restart|status
+cd tradermate
+./scripts/datasync_service.sh init
 ```
 
-### 3. Daily Sync Daemon
-
-Run automated daily sync using the canonical datasync service and lifecycle script:
-
-```bash
-# Use the lifecycle script (recommended)
-cd /Users/mac/Workspace/Projects/TraderMate/tradermate
-./scripts/datasync_service.sh start|stop|restart|status
-
-# Or run once (for quick manual operations)
-.venv/bin/python3 app/datasync/service/data_sync_daemon.py --once
-
-# Run as daemon (manual)
-.venv/bin/python3 app/datasync/service/data_sync_daemon.py --daemon
-
-# Sync to vnpy only (no Tushare fetch)
-.venv/bin/python3 app/datasync/service/data_sync_daemon.py --sync-vnpy
-```
-
-Developer note: after editing datasync modules, restart the datasync service via the lifecycle script to ensure the updated code is loaded.
-
-### 4. vnpy Configuration
-
-vnpy settings file (`~/.vntrader/vt_setting.json`):
-
-```json
-{
-    "database.name": "mysql",
-    "database.database": "vnpy",
-    "database.host": "127.0.0.1",
-    "database.port": 3306,
-    "database.user": "root",
-    "database.password": "password"
-}
-```
-
-## Database Initialization
-
-The init script creates both databases and all tables:
-
-```bash
-# Using Docker
-docker exec -i tradermate_mysql mysql -uroot -ppassword < mysql/init/init.sql
-
-# Or direct MySQL connection
-mysql -uroot -ppassword < mysql/init/init.sql
-```
-
-## Migration from Old Structure
-
-If migrating from the old single-database structure:
-
-```sql
--- Migrate daily data
-INSERT INTO tushare.stock_daily
-SELECT * FROM tradermate.tushare_stock_daily
-ON DUPLICATE KEY UPDATE open=VALUES(open);
-
--- Migrate stock basic
-INSERT INTO tushare.stock_basic
-SELECT * FROM tradermate.tushare_stock_stock_basic
-ON DUPLICATE KEY UPDATE name=VALUES(name);
-```
-
-## Maintenance
-
-### Check Data Status
-
-```bash
-# Check tushare
-docker exec tradermate_mysql mysql -uroot -ppassword -e \
-    "SELECT COUNT(*) FROM tushare.stock_daily;"
-
-# Check vnpy
-docker exec tradermate_mysql mysql -uroot -ppassword -e \
-    "SELECT * FROM vnpy.dbbaroverview;"
-```
-
-### Verify Sync
-
-```python
-# Run check script
-python app/scripts/check_vnpy.py
-```
+This initializes schemas and loads recent data; it is safe to re-run and will resume if interrupted.

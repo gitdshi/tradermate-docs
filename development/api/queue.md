@@ -2,26 +2,41 @@
 
 Base path: `/api/queue`
 
-Endpoints
+Auth: Bearer token required.
+
+## Endpoints
 
 - `GET /api/queue/stats`
-  - Description: Get queue statistics (counts per queue, processing rates)
-  - Response: `{ queues: { backtest: { queued: 10, started: 2, failed: 1 }, optimization: {...} }, redis_info: {...} }`
+  - Queue statistics from Redis job storage.
 
 - `GET /api/queue/jobs`
-  - Description: List jobs for the authenticated user
-  - Query params: `?status=queued&limit=20&page=1`
+  - List jobs for the current user.
+  - Query: `status`, `limit` (default 50).
 
 - `GET /api/queue/jobs/{job_id}`
-  - Description: Get job details, logs, and progress
+  - Get job detail and result (if available).
 
 - `POST /api/queue/jobs/{job_id}/cancel`
-  - Description: Cancel a queued or running job
+  - Cancel a running job.
 
 - `DELETE /api/queue/jobs/{job_id}`
-  - Description: Remove a job from storage (user action)
+  - Delete a job and its results.
 
-Notes
+- `POST /api/queue/backtest`
+  - Submit a backtest to the Redis/RQ queue.
+  - Body: similar to `/api/backtest`, accepts `symbol` or `vt_symbol`.
 
-- Queue backend: Redis + RQ workers. Worker processes consume job queues and update status/progress in job storage.
-- Result TTL: job results may be kept for a configured TTL (default 7 days) before automatic cleanup.
+- `POST /api/queue/bulk-backtest`
+  - Submit a bulk backtest (one strategy, many symbols).
+
+- `GET /api/queue/bulk-jobs/{job_id}/results`
+  - Paginated child results for a bulk job.
+  - Query: `page`, `page_size`, `sort_order` (asc|desc).
+
+- `GET /api/queue/bulk-jobs/{job_id}/summary`
+  - Aggregated summary statistics for a bulk job.
+
+## Notes
+
+- `/api/queue/*` uses Redis + job storage and is intended for longer-running workloads.
+- `/api/backtest` uses in-process background tasks and is best for smaller local runs.

@@ -1,33 +1,26 @@
-# Testing Overview
+# Testing
 
-Core testing documentation and quick references for running the automated test suite.
-
-- Unit & Integration: Vitest (see `tradermate-portal` folder for test files)
-- E2E: Playwright (see `docs/frontend/E2E_README.md` for scenarios and commands)
-- Test summaries: `docs/frontend/TEST_SUMMARY.md`
-
-Quick commands:
+## Backend (tradermate)
 
 ```bash
-# Install deps and Playwright browsers
+cd tradermate
+pip install -r requirements.txt
+pytest -q
+```
+
+## Frontend (tradermate-portal)
+
+```bash
+cd tradermate-portal
 npm install
-npx playwright install
-
-# Run unit tests
 npm run test:run
-
-# Run coverage
-npm run test:coverage
-
-# Run E2E tests
-npm run test:e2e
 ```
 
-Developer note: if you modify worker task code (backend `app/worker/service/*`), restart the RQ worker using the lifecycle script to ensure the new code is loaded:
+## E2E
 
-```bash
-cd /Users/mac/Workspace/Projects/TraderMate/tradermate
-./scripts/worker_service.sh restart
-```
+See `development/frontend/E2E_README.md`.
 
-For full testing guidance and examples, open `docs/frontend/TEST_SUMMARY.md` and `docs/frontend/E2E_README.md`.
+## Notes
+
+- Some tests require MySQL/Redis to be running (`docker-compose.dev.yml`).
+- For a quick smoke test, run `pytest -q tests/` in the backend repo.

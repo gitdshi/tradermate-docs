@@ -1,51 +1,65 @@
-# Getting Started â€” TraderMate
+# Getting Started ¡ª TraderMate
 
-Quick instructions to get a local development environment running.
+Quick setup for local development.
 
 ## Prerequisites
-- Docker & Docker Compose
-- Python 3.11
-- Node.js 18+ and npm
+
+- Docker + Docker Compose (for MySQL/Redis only)
+- Python 3.11+
+- Node.js 18+
 
 ## Backend (API)
 
-1. Copy environment template:
+1) Copy env template
 
 ```bash
+cd tradermate
 cp .env.example .env
-# Edit .env to add your Tushare token and credentials
+# Set at least MYSQL_PASSWORD, SECRET_KEY, and TUSHARE_TOKEN
 ```
 
-2. Start MySQL (Docker):
+2) Start MySQL + Redis
 
 ```bash
-docker-compose up -d mysql
+docker compose -f docker-compose.dev.yml up -d mysql redis
 ```
 
-3. Install Python dependencies and run API:
+3) Install deps + run API
 
 ```bash
+python -m venv .venv
+# Windows PowerShell:
+. .venv/Scripts/activate
+# WSL/Linux:
+source .venv/bin/activate
 pip install -r requirements.txt
-# Use the lifecycle script to run the API (ensures venv and logs)
-./scripts/api_service.sh start|stop|restart|status
-# For quick manual debugging only:
+
+./scripts/api_service.sh start
+# or
 python -m uvicorn app.api.main:app --reload
 ```
 
-## Frontend
-
-1. Install and run the frontend (now in `tradermate-portal`):
+4) Initialize market data (optional, resumable)
 
 ```bash
-cd tradermate-portal
-npm install
-# Use the lifecycle script for the frontend dev server:
-./scripts/portal_service.sh start|stop|restart|status
+./scripts/datasync_service.sh init
 ```
 
-2. The frontend runs at http://localhost:5173 and expects the backend at http://localhost:8000 by default.
+## Frontend (Portal)
+
+```bash
+cd ../tradermate-portal
+npm install
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+Frontend: http://localhost:5173
+Backend: http://localhost:8000
+
+First login uses the admin account and requires a password change.
 
 ## Testing
 
-- Unit & integration tests are configured with Vitest. See `docs/TESTING.md` and `docs/frontend/TEST_SUMMARY.md` for commands.
-- E2E tests use Playwright; ensure `npx playwright install` has been run before executing E2E tests.
+- Backend tests: `testing/TESTING.md`
+- Frontend test summary: `development/frontend/TEST_SUMMARY.md`
+- E2E tests: `development/frontend/E2E_README.md`

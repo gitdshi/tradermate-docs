@@ -24,6 +24,7 @@ src/
 │   ├── auth/
 │   │   ├── Login.tsx    # Login page
 │   │   └── Register.tsx # Registration page
+│   │   └── ChangePassword.tsx # Forced password change
 │   ├── Dashboard.tsx    # Dashboard with queue stats
 │   ├── Strategies.tsx   # Strategy management (placeholder)
 │   ├── Backtest.tsx     # Backtest interface (placeholder)
@@ -46,6 +47,7 @@ src/
 - JWT token management with automatic refresh
 - Protected routes (PrivateRoute wrapper)
 - Persistent auth state in localStorage
+- Forced password change flow on first admin login
 
 ### API Client
 - Axios instance with base URL configuration
@@ -71,7 +73,7 @@ src/
 npm install
 
 # Start development server
-npm run dev
+npm run dev -- --host 0.0.0.0 --port 5173
 
 # Build for production
 npm run build
@@ -83,10 +85,12 @@ npm run preview
 ## Development
 
 The app runs on http://localhost:5173 by default.
+Dev proxy forwards `/api` to `http://localhost:8000` (see `vite.config.ts`).
 
 ### Routes
 - `/login` - Login page
 - `/register` - Registration page
+- `/change-password` - Change password (protected)
 - `/` - Dashboard (protected)
 - `/strategies` - Strategy management (protected)
 - `/backtest` - Backtest interface (protected)

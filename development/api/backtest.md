@@ -1,45 +1,52 @@
-# Backtesting API
+# Backtest API
 
 Base path: `/api/backtest`
 
-Overview
+Auth: Bearer token required for all endpoints.
 
-- Backtests are executed asynchronously via background workers (RQ). Submit jobs and poll for status/results.
-
-Endpoints
+## Endpoints
 
 - `POST /api/backtest`
-  - Description: Submit a single backtest job
-  - Auth: Bearer token required
-  - Body (example):
+  - Submit a single backtest (runs via FastAPI BackgroundTasks, in-process).
+  - Body example:
     ```json
     {
       "strategy_id": 1,
       "strategy_class": "TripleMAStrategy",
-      "symbol": "000001.SZ",
-      "start_date": "2020-01-01",
-      "end_date": "2023-12-31",
-      "initial_capital": 100000.0,
-      "parameters": { "fast_window": 5, "slow_window": 20 }
+      "vt_symbol": "000001.SZ",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "parameters": {"fast_window": 5, "slow_window": 20},
+      "capital": 100000.0,
+      "rate": 0.0001,
+      "slippage": 0.0,
+      "size": 1,
+      "benchmark": "399300.SZ"
     }
     ```
-  - Response: `{ "job_id": "<uuid>", "status": "queued" }`
+  - Response: `{ "job_id": "<uuid>", "status": "pending", "message": "..." }`
 
 - `POST /api/backtest/batch`
-  - Description: Submit multiple symbols in one job (batch)
-  - Body: `{ "symbols": ["000001.SZ", "000002.SZ"], ... }`
+  - Submit a batch backtest for multiple symbols.
+  - Body: same as above, but `symbols: ["000001.SZ", "000002.SZ"]` and optional `top_n`.
 
 - `GET /api/backtest/{job_id}`
-  - Description: Get job status and result metadata
-  - Response: `{ "job_id": "..", "status": "started|finished|failed", "progress": 0-100, "result_url": "/api/backtest/results/{job_id}" }`
+  - Get single-job status/result.
 
-- `GET /api/backtest/history`
-  - Description: List historical backtests for the user
+- `GET /api/backtest/batch/{job_id}`
+  - Get batch-job status/result.
 
-- `POST /api/backtest/{job_id}/cancel`
-  - Description: Cancel a running backtest job
+- `DELETE /api/backtest/{job_id}`
+  - Cancel a pending/running job.
 
-Notes
+- `GET /api/backtest/history/list`
+  - List historical backtests from DB.
+  - Query: `limit`, `offset` (defaults 50/0)
 
-- Results are persisted in job storage (Redis + persistent layer). Large result payloads are provided via result URLs or stored in DB.
-- For synchronous testing or local dev, a non-RQ path may exist to execute short backtests inline (not recommended for production).
+- `GET /api/backtest/history/{job_id}`
+  - Detailed backtest result from DB.
+
+## Notes
+
+- `/api/backtest` uses in-process background tasks. For Redis/RQ-backed jobs, use `/api/queue` endpoints.
+- Results are persisted to DB for history and may also be cached in Redis job storage.

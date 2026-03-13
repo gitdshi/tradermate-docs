@@ -2,38 +2,43 @@
 
 Base path: `/api/strategies`
 
-Endpoints
+Auth: Bearer token required unless otherwise noted.
+
+## Endpoints
 
 - `GET /api/strategies`
-  - Description: List user strategies
-  - Query params: `?limit=&page=&sort=`
-  - Response: Paginated list of strategies
+  - List all strategies for the current user.
+  - Response: array of `StrategyListItem` (not paginated).
 
 - `POST /api/strategies`
-  - Description: Create a new strategy
-  - Auth: Bearer token required
-  - Body: `{ "name": string, "description": string, "code": string, "params": object }`
-  - Response: Created strategy object with `id`
+  - Create a new strategy.
+  - Body: `{ "name": string, "class_name": string, "description": string, "parameters": object, "code": string }`
 
-- `GET /api/strategies/{id}`
-  - Description: Get strategy details
-  - Response: Strategy object including source code and parameter schema
+- `GET /api/strategies/{strategy_id}`
+  - Fetch a strategy by ID.
 
-- `PUT /api/strategies/{id}`
-  - Description: Update strategy
-  - Auth: Bearer token required
-  - Body: Partial strategy fields
-  - Response: Updated strategy
+- `PUT /api/strategies/{strategy_id}`
+  - Update a strategy (partial fields supported).
 
-- `DELETE /api/strategies/{id}`
-  - Description: Delete user strategy
-  - Auth: Bearer token required
-  - Response: 204 No Content
+- `DELETE /api/strategies/{strategy_id}`
+  - Delete a strategy.
 
-- `GET /api/strategies/builtin`
-  - Description: List built-in strategies available for quick import (e.g., Turtle Trading, Triple MA)
+- `POST /api/strategies/{strategy_id}/validate`
+  - Validate strategy code and class name.
 
-Notes
+- `GET /api/strategies/{strategy_id}/code-history`
+  - List stored code-history entries.
 
-- Strategy code validation: server-side AST validation and safe execution checks are performed before saving or running.
-- Parameter schema: strategies expose parameter names, types, min/max/default for UI builders and optimization.
+- `GET /api/strategies/{strategy_id}/code-history/{history_id}`
+  - Retrieve a specific code-history entry.
+
+- `POST /api/strategies/{strategy_id}/code-history/{history_id}/restore`
+  - Restore a code-history entry to the active strategy.
+
+- `GET /api/strategies/builtin/list`
+  - List built-in strategies from `app/strategies/` (no auth required).
+
+## Notes
+
+- Validation is performed server-side via `validate_strategy_code`.
+- Built-in strategies are discovered dynamically from the Python files in `app/strategies/`.

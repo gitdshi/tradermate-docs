@@ -2,30 +2,39 @@
 
 Base path: `/api/data`
 
-Endpoints
+Auth: Optional. These endpoints accept a token if provided, but do not require login.
+
+## Endpoints
 
 - `GET /api/data/symbols`
-  - Description: List available symbols (supports search and pagination)
-  - Query params: `?q=000001&page=1&limit=100`
-  - Response: `{ items: [{ symbol, name, exchange }], total: number }`
+  - List available symbols.
+  - Query: `exchange` (SZSE/SSE/BSE), `keyword`, `limit` (<=1000), `offset`.
 
-- `GET /api/data/history`
-  - Description: Retrieve OHLCV historical data
-  - Query params: `?symbol=000001.SZ&start=2020-01-01&end=2023-12-31&interval=daily`
-  - Response: Array of OHLCV rows `{ date, open, high, low, close, volume }`
+- `GET /api/data/history/{vt_symbol}`
+  - Historical OHLC bars.
+  - Query: `start_date`, `end_date`, `interval` (daily|weekly|monthly).
 
-- `GET /api/data/indicators`
-  - Description: Compute technical indicators for a symbol (MA, EMA, RSI, etc.)
-  - Query params: `?symbol=000001.SZ&period=30&type=ma`
-  - Response: Indicator series suitable for chart overlays
+- `GET /api/data/indicators/{vt_symbol}`
+  - Computed indicators.
+  - Query: `start_date`, `end_date`, `indicators` (comma-separated, e.g. `ma_10,ma_20,ma_60`).
 
 - `GET /api/data/overview`
-  - Description: Market overview and indices snapshot
+  - Market overview stats.
 
 - `GET /api/data/sectors`
-  - Description: Sector aggregation and sector-level metrics
+  - Sector summaries.
 
-Notes
+- `GET /api/data/exchanges`
+  - Exchange-level groupings.
 
-- Data source: Tushare DB or configured market data DB. Ensure ingestion is up-to-date for accurate backtests.
-- Pagination and caching headers are used for large history responses.
+- `GET /api/data/indexes`
+  - Available benchmark index codes (AkShare).
+
+- `GET /api/data/symbols-by-filter`
+  - Filtered symbol list for bulk backtests.
+  - Query: `industry`, `exchange`, `limit` (<=2000).
+
+## Notes
+
+- Data comes from Tushare and AkShare sync pipelines. Ensure data sync has been initialized.
+- `vt_symbol` uses the format like `000001.SZ`.
