@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TraderMate — 策略研究</title>
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.tailwindcss.com?v=3.4"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content" id="main">
+
+    <div class="page-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">策略研究</h1>
+          <p class="page-subtitle">策略编辑、管理与版本控制</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openModal('importModal')">导入策略</button>
+          <button class="btn btn-primary" onclick="openModal('createModal')">+ 新建策略</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" data-group="strat">
+      <button class="tab-btn active" data-tab="list">策略列表</button>
+      <button class="tab-btn" data-tab="editor">代码编辑器</button>
+      <button class="tab-btn" data-tab="versions">版本历史</button>
+      <button class="tab-btn" data-tab="templates">策略模板</button>
+    </div>
+
+    <!-- Tab: Strategy List -->
+    <div class="tab-panel active" data-group="strat" data-panel="list">
+      <div class="filter-bar">
+        <input type="text" class="form-input" placeholder="🔍 搜索策略名称..." style="max-width:280px">
+        <select class="form-select" style="max-width:160px">
+          <option>全部类型</option><option>CTA</option><option>Custom</option><option>AI</option>
+        </select>
+        <select class="form-select" style="max-width:160px">
+          <option>全部状态</option><option>active</option><option>draft</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>名称</th><th>类型</th><th>描述</th><th>版本</th><th>来源</th><th>状态</th><th>操作</th></tr>
+          </thead>
+          <tbody id="stratTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Editor -->
+    <div class="tab-panel" data-group="strat" data-panel="editor">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">代码编辑器 — DualMA_Cross</h3>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="showToast('代码已格式化','success')">格式化</button>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('语法验证通过 ✓','success')">验证语法</button>
+            <button class="btn btn-primary btn-sm" onclick="showToast('策略已保存','success')">保存</button>
+          </div>
+        </div>
+        <pre class="code-block" style="min-height:400px;font-size:13px;line-height:1.6"><code># DualMA_Cross Strategy v3
+# 双均线交叉策略
+
+import pandas as pd
+import numpy as np
+
+class DualMACross:
+    """双均线交叉策略
+    短期均线上穿长期均线时买入，下穿时卖出
+    """
+    
+    def __init__(self, short_window=5, long_window=20):
+        self.short_window = short_window
+        self.long_window = long_window
+        self.name = "DualMA_Cross"
+    
+    def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
+        df['ma_short'] = df['close'].rolling(self.short_window).mean()
+        df['ma_long'] = df['close'].rolling(self.long_window).mean()
+
+        df['signal'] = 0
+        df.loc[df['ma_short'] > df['ma_long'], 'signal'] = 1
+        df.loc[df['ma_short'] &lt; df['ma_long'], 'signal'] = -1
+
+        df['position'] = df['signal'].diff()
+        return df
+
+    def on_bar(self, bar):
+        """逐K线回调"""
+        signal = self.generate_signals(bar)
+        if signal['position'].iloc[-1] == 2:
+            return {'action': 'BUY', 'size': 100}
+        elif signal['position'].iloc[-1] == -2:
+            return {'action': 'SELL', 'size': 100}
+        return None</code></pre>
+        <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+          <span class="badge badge-success">语法正确</span>
+          <span class="text-muted" style="font-size:13px">Python 3.11 · 最后修改 2026-03-13 10:24</span>
+        </div>
+      </div>
+
+      <!-- Parameters Panel -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">策略参数</h3></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+          <div>
+            <label class="form-label">短期窗口 (short_window)</label>
+            <input type="number" class="form-input" value="5">
+          </div>
+          <div>
+            <label class="form-label">长期窗口 (long_window)</label>
+            <input type="number" class="form-input" value="20">
+          </div>
+          <div>
+            <label class="form-label">初始资金</label>
+            <input type="number" class="form-input" value="1000000">
+          </div>
+          <div>
+            <label class="form-label">手续费率 (%)</label>
+            <input type="number" class="form-input" value="0.03" step="0.01">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Version History -->
+    <div class="tab-panel" data-group="strat" data-panel="versions">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">版本历史 — DualMA_Cross</h3></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>版本</th><th>时间</th><th>提交者</th><th>说明</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge badge-primary">v3</span></td><td>2026-03-13 10:24</td><td>demo_user</td><td>优化均线周期, 增加止损逻辑</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('正在查看 v3 版本','info')">查看</button><button class="btn btn-ghost btn-sm" onclick="showConfirm('确定要回滚到 v3 版本？',function(){showToast('已回滚到 v3','success')})">回滚</button></td></tr>
+              <tr><td><span class="badge badge-muted">v2</span></td><td>2026-03-10 16:05</td><td>demo_user</td><td>增加动态仓位管理</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('正在查看 v2 版本','info')">查看</button><button class="btn btn-ghost btn-sm" onclick="showConfirm('确定要回滚到 v2 版本？',function(){showToast('已回滚到 v2','success')})">回滚</button><button class="btn btn-ghost btn-sm" onclick="showToast('显示 v3 与 v2 差异','info')">Diff</button></td></tr>
+              <tr><td><span class="badge badge-muted">v1</span></td><td>2026-03-05 09:30</td><td>demo_user</td><td>初始版本</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('正在查看 v1 版本','info')">查看</button><button class="btn btn-ghost btn-sm" onclick="showConfirm('确定要回滚到 v1 版本？',function(){showToast('已回滚到 v1','success')})">回滚</button><button class="btn btn-ghost btn-sm" onclick="showToast('显示 v3 与 v1 差异','info')">Diff</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Templates -->
+    <div class="tab-panel" data-group="strat" data-panel="templates">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">双均线交叉</h3><span class="badge badge-primary">CTA</span></div>
+          <p class="text-muted" style="font-size:13px;margin:8px 0">经典的双均线金叉/死叉策略，适合趋势行情</p>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm">使用模板</button><button class="btn btn-ghost btn-sm">预览</button></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">RSI 反转</h3><span class="badge badge-primary">CTA</span></div>
+          <p class="text-muted" style="font-size:13px;margin:8px 0">基于 RSI 超买超卖信号的反转策略</p>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm">使用模板</button><button class="btn btn-ghost btn-sm">预览</button></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">布林带突破</h3><span class="badge badge-primary">CTA</span></div>
+          <p class="text-muted" style="font-size:13px;margin:8px 0">利用布林带上下轨判断突破买卖点</p>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm">使用模板</button><button class="btn btn-ghost btn-sm">预览</button></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">多因子选股</h3><span class="badge badge-warning">Alpha</span></div>
+          <p class="text-muted" style="font-size:13px;margin:8px 0">基于因子打分的多因子选股框架，可自定义因子权重</p>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm">使用模板</button><button class="btn btn-ghost btn-sm">预览</button></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">配对交易</h3><span class="badge badge-warning">统计套利</span></div>
+          <p class="text-muted" style="font-size:13px;margin:8px 0">协整配对交易策略，适合低波动环境</p>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm">使用模板</button><button class="btn btn-ghost btn-sm">预览</button></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">网格交易</h3><span class="badge badge-muted">网格</span></div>
+          <p class="text-muted" style="font-size:13px;margin:8px 0">自动化网格挂单策略，适合震荡行情</p>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm">使用模板</button><button class="btn btn-ghost btn-sm">预览</button></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Create Strategy Modal -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title">新建策略</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('createModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div><label class="form-label">策略名称</label><input type="text" class="form-input" placeholder="例如: MyStrategy_v1"></div>
+        <div><label class="form-label">策略类型</label>
+          <select class="form-select"><option>CTA</option><option>Alpha</option><option>套利</option><option>自定义</option></select>
+        </div>
+        <div><label class="form-label">描述</label><textarea class="form-textarea" rows="3" placeholder="策略简要说明..."></textarea></div>
+        <div><label class="form-label">基于模板</label>
+          <select class="form-select"><option>空白策略</option><option>双均线交叉</option><option>RSI 反转</option><option>布林带突破</option><option>多因子选股</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('createModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitModal('createModal','策略已创建，可在列表中查看')">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">导入策略</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('importModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="border:2px dashed var(--border);border-radius:8px;padding:40px;text-align:center;color:var(--muted-foreground)">
+        <p style="font-size:14px">将 .py 文件拖拽到此处，或点击上传</p>
+        <button class="btn btn-secondary" style="margin-top:12px" onclick="showToast('文件选择器已打开（原型演示）','info')">选择文件</button>
+      </div>
+      <p class="text-muted" style="font-size:12px;margin-top:8px">支持 Python (.py) 格式，最大 500KB</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('importModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitModal('importModal','策略文件已导入')">导入</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const tbody = document.getElementById('stratTable');
+MOCK.strategies.forEach(s => {
+  tbody.innerHTML += `<tr>
+    <td><b>${s.name}</b></td>
+    <td><span class="badge badge-primary">${s.type}</span></td>
+    <td class="text-muted">${s.desc}</td>
+    <td>v${s.version}</td>
+    <td>${s.builtin ? '内置' : '自建'}</td>
+    <td>${statusBadge(s.status)}</td>
+    <td>
+      <button class="btn btn-ghost btn-sm" onclick="activateTab('strat','editor');showToast('已加载 ${s.name}','info')">编辑</button>
+      <button class="btn btn-ghost btn-sm" onclick="location.href='backtest.html'">回测</button>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('${s.name} 已复制','success')">复制</button>
+    </td>
+  </tr>`;
+});
+
+// Template buttons
+document.querySelectorAll('.tab-panel[data-panel="templates"] .btn-primary.btn-sm').forEach(function(b){
+  if(b.textContent.trim()==='使用模板') b.onclick=function(){activateTab('strat','editor');showToast('模板已加载到编辑器','success');};
+});
+document.querySelectorAll('.tab-panel[data-panel="templates"] .btn-ghost.btn-sm').forEach(function(b){
+  if(b.textContent.trim()==='预览') b.onclick=function(){showToast('模板预览（原型演示）','info');};
+});
+
+// Filters
+(function(){
+  var search=document.querySelector('.filter-bar .form-input');
+  var selType=document.querySelectorAll('.filter-bar .form-select')[0];
+  var selStat=document.querySelectorAll('.filter-bar .form-select')[1];
+  function filterStrat(){
+    var q=(search?search.value:'').toLowerCase();
+    var t=selType?selType.value:'';
+    var s=selStat?selStat.value:'';
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var name=row.cells[0].textContent.toLowerCase();
+      var type=row.cells[1].textContent;
+      var stat=row.cells[5].textContent;
+      var show=true;
+      if(q&&name.indexOf(q)<0)show=false;
+      if(t&&t!=='全部类型'&&type.indexOf(t)<0)show=false;
+      if(s&&s!=='全部状态'&&stat.indexOf(s)<0)show=false;
+      row.style.display=show?'':'none';
+    });
+  }
+  if(search) search.addEventListener('input',filterStrat);
+  if(selType) selType.addEventListener('change',filterStrat);
+  if(selStat) selStat.addEventListener('change',filterStrat);
+})();
+</script>
+</body>
+</html>

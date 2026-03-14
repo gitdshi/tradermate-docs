@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TraderMate — 登录</title>
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.tailwindcss.com?v=3.4"></script>
+  <style>
+    .auth-page{display:flex;min-height:100vh;background:var(--background)}
+    .auth-left{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
+    .auth-right{flex:1;background:linear-gradient(135deg,hsl(221.2,83.2%,53.3%),hsl(250,80%,55%));display:flex;align-items:center;justify-content:center;color:#fff;padding:60px;position:relative;overflow:hidden}
+    .auth-right::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+    .auth-card{width:100%;max-width:400px}
+    .auth-logo{font-size:28px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .auth-logo span{color:var(--primary)}
+    .divider{display:flex;align-items:center;gap:12px;margin:24px 0;font-size:13px;color:var(--muted-foreground)}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .social-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);cursor:pointer;font-size:14px;transition:background .15s}
+    .social-btn:hover{background:var(--accent)}
+    @media(max-width:768px){.auth-right{display:none}}
+  </style>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-card" id="loginCard">
+      <div class="auth-logo"><span>📊</span> TraderMate</div>
+      <p class="text-muted" style="margin-bottom:32px">量化交易研究平台</p>
+
+      <h2 style="font-size:22px;font-weight:600;margin-bottom:4px">登录账户</h2>
+      <p class="text-muted" style="font-size:14px;margin-bottom:24px">输入您的凭证以访问平台</p>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div><label class="form-label">邮箱</label><input type="email" class="form-input" placeholder="name@example.com"></div>
+        <div>
+          <div style="display:flex;justify-content:space-between"><label class="form-label">密码</label><a href="#" style="font-size:13px;color:var(--primary);text-decoration:none" onclick="showCard('forgot')">忘记密码?</a></div>
+          <input type="password" class="form-input" placeholder="••••••••">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="remember"><label for="remember" style="font-size:13px">记住我</label>
+        </div>
+        <a href="dashboard.html" class="btn btn-primary" style="width:100%;text-align:center;text-decoration:none">登录</a>
+      </div>
+
+      <div class="divider">或者</div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="social-btn">🔑 企业微信登录</button>
+        <button class="social-btn">🌐 GitHub 登录</button>
+      </div>
+
+      <p style="text-align:center;margin-top:24px;font-size:14px;color:var(--muted-foreground)">
+        还没有账户? <a href="#" style="color:var(--primary);text-decoration:none;font-weight:500" onclick="showCard('register')">注册</a>
+      </p>
+    </div>
+
+    <!-- Register Card -->
+    <div class="auth-card" id="registerCard" style="display:none">
+      <div class="auth-logo"><span>📊</span> TraderMate</div>
+      <p class="text-muted" style="margin-bottom:32px">量化交易研究平台</p>
+
+      <h2 style="font-size:22px;font-weight:600;margin-bottom:4px">创建账户</h2>
+      <p class="text-muted" style="font-size:14px;margin-bottom:24px">填写以下信息开始您的量化之旅</p>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div><label class="form-label">用户名</label><input type="text" class="form-input" placeholder="your_username"></div>
+        <div><label class="form-label">邮箱</label><input type="email" class="form-input" placeholder="name@example.com"></div>
+        <div><label class="form-label">密码</label><input type="password" class="form-input" placeholder="至少 8 位，含字母和数字"></div>
+        <div><label class="form-label">确认密码</label><input type="password" class="form-input" placeholder="再次输入密码"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="agree"><label for="agree" style="font-size:13px">我同意 <a href="#" style="color:var(--primary);text-decoration:none">服务条款</a> 和 <a href="#" style="color:var(--primary);text-decoration:none">隐私政策</a></label>
+        </div>
+        <a href="dashboard.html" class="btn btn-primary" style="width:100%;text-align:center;text-decoration:none">创建账户</a>
+      </div>
+
+      <p style="text-align:center;margin-top:24px;font-size:14px;color:var(--muted-foreground)">
+        已有账户? <a href="#" style="color:var(--primary);text-decoration:none;font-weight:500" onclick="showCard('login')">登录</a>
+      </p>
+    </div>
+
+    <!-- Forgot Password Card -->
+    <div class="auth-card" id="forgotCard" style="display:none">
+      <div class="auth-logo"><span>📊</span> TraderMate</div>
+      <p class="text-muted" style="margin-bottom:32px">量化交易研究平台</p>
+
+      <h2 style="font-size:22px;font-weight:600;margin-bottom:4px">重置密码</h2>
+      <p class="text-muted" style="font-size:14px;margin-bottom:24px">输入您的邮箱，我们将发送重置链接</p>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div><label class="form-label">邮箱</label><input type="email" class="form-input" placeholder="name@example.com"></div>
+        <button class="btn btn-primary" style="width:100%">发送重置链接</button>
+      </div>
+
+      <p style="text-align:center;margin-top:24px;font-size:14px;color:var(--muted-foreground)">
+        <a href="#" style="color:var(--primary);text-decoration:none;font-weight:500" onclick="showCard('login')">← 返回登录</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div style="max-width:400px;text-align:center;position:relative;z-index:1">
+      <div style="font-size:64px;margin-bottom:24px">📈</div>
+      <h2 style="font-size:28px;font-weight:700;margin-bottom:16px">智能量化，数据驱动</h2>
+      <p style="font-size:16px;opacity:.85;line-height:1.7;margin-bottom:32px">
+        TraderMate 为量化交易研究者提供一站式策略开发、回测验证、组合管理与风险控制平台
+      </p>
+      <div style="display:flex;justify-content:center;gap:24px;font-size:14px;opacity:.8">
+        <div><div style="font-size:24px;font-weight:700">77+</div>功能点</div>
+        <div><div style="font-size:24px;font-weight:700">10</div>核心模块</div>
+        <div><div style="font-size:24px;font-weight:700">AI</div>智能助手</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showCard(name){
+  document.getElementById('loginCard').style.display='none';
+  document.getElementById('registerCard').style.display='none';
+  document.getElementById('forgotCard').style.display='none';
+  document.getElementById(name+'Card').style.display='block';
+}
+</script>
+</body>
+</html>

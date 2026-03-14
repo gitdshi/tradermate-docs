@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TraderMate — 系统设置</title>
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.tailwindcss.com?v=3.4"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content" id="main">
+
+    <div class="page-header">
+      <h1 class="page-title">系统设置</h1>
+      <p class="page-subtitle">全局配置 · 数据源 · 通知 · 界面</p>
+    </div>
+
+    <div class="tabs" data-group="st">
+      <button class="tab-btn active" data-tab="general">通用设置</button>
+      <button class="tab-btn" data-tab="datasource">数据源</button>
+      <button class="tab-btn" data-tab="trading-cfg">交易配置</button>
+      <button class="tab-btn" data-tab="notification">通知设置</button>
+      <button class="tab-btn" data-tab="ui">界面偏好</button>
+      <button class="tab-btn" data-tab="system">系统信息</button>
+    </div>
+
+    <!-- Tab: General -->
+    <div class="tab-panel active" data-group="st" data-panel="general">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">基本设置</h3></div>
+        <div style="display:flex;flex-direction:column;gap:20px;max-width:600px">
+          <div>
+            <label class="form-label">平台名称</label>
+            <input type="text" class="form-input" value="TraderMate">
+          </div>
+          <div>
+            <label class="form-label">默认货币</label>
+            <select class="form-select"><option>CNY (人民币)</option><option>USD (美元)</option><option>HKD (港币)</option></select>
+          </div>
+          <div>
+            <label class="form-label">时区</label>
+            <select class="form-select"><option>Asia/Shanghai (UTC+8)</option><option>America/New_York (UTC-5)</option></select>
+          </div>
+          <div>
+            <label class="form-label">语言</label>
+            <select class="form-select"><option>简体中文</option><option>English</option></select>
+          </div>
+          <div>
+            <label class="form-label">日志级别</label>
+            <select class="form-select"><option>INFO</option><option>DEBUG</option><option>WARNING</option><option>ERROR</option></select>
+          </div>
+        </div>
+        <div style="margin-top:20px"><button class="btn btn-primary" onclick="showToast('基本设置已保存','success')">保存设置</button></div>
+      </div>
+    </div>
+
+    <!-- Tab: Datasource -->
+    <div class="tab-panel" data-group="st" data-panel="datasource">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">数据源配置</h3></div>
+        <div style="display:flex;flex-direction:column;gap:20px;max-width:600px">
+          <div>
+            <label class="form-label">Tushare Token</label>
+            <input type="password" class="form-input" value="****************************">
+            <p class="text-muted" style="font-size:12px;margin-top:4px">获取地址: tushare.pro</p>
+          </div>
+          <div>
+            <label class="form-label">数据刷新频率</label>
+            <select class="form-select"><option>实时 (每5分钟)</option><option>15分钟</option><option>30分钟</option><option>1小时</option></select>
+          </div>
+          <div>
+            <label class="form-label">历史数据范围</label>
+            <select class="form-select"><option>2010年至今</option><option>2015年至今</option><option>2020年至今</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">数据库配置</h3></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px">
+          <div><label class="form-label">主机</label><input type="text" class="form-input" value="localhost"></div>
+          <div><label class="form-label">端口</label><input type="number" class="form-input" value="3306"></div>
+          <div><label class="form-label">数据库名</label><input type="text" class="form-input" value="tradermate"></div>
+          <div><label class="form-label">用户名</label><input type="text" class="form-input" value="tradermate_user"></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="showToast('数据库连接测试成功','success')">测试连接</button>
+          <span class="badge badge-success">连接正常</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Trading Config -->
+    <div class="tab-panel" data-group="st" data-panel="trading-cfg">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">交易参数</h3></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px">
+          <div><label class="form-label">默认手续费率 (%)</label><input type="number" class="form-input" value="0.03" step="0.01"></div>
+          <div><label class="form-label">印花税率 (%)</label><input type="number" class="form-input" value="0.05" step="0.01"></div>
+          <div><label class="form-label">滑点 (基点)</label><input type="number" class="form-input" value="2"></div>
+          <div><label class="form-label">默认回测初始资金</label><input type="number" class="form-input" value="1000000"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">风控全局设置</h3></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px">
+          <div><label class="form-label">单股最大仓位 (%)</label><input type="number" class="form-input" value="20"></div>
+          <div><label class="form-label">总仓位上限 (%)</label><input type="number" class="form-input" value="80"></div>
+          <div><label class="form-label">单日亏损限制 (%)</label><input type="number" class="form-input" value="3"></div>
+          <div><label class="form-label">最大回撤限制 (%)</label><input type="number" class="form-input" value="15"></div>
+        </div>
+        <div style="margin-top:16px"><button class="btn btn-primary" onclick="showToast('交易配置已保存','success')">保存配置</button></div>
+      </div>
+    </div>
+
+    <!-- Tab: Notification -->
+    <div class="tab-panel" data-group="st" data-panel="notification">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">通知偏好</h3></div>
+        <div style="display:flex;flex-direction:column;gap:16px;max-width:500px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-weight:600">策略信号通知</div><div class="text-muted" style="font-size:12px">新的买卖信号触发时通知</div></div>
+            <div class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-weight:600">委托成交通知</div><div class="text-muted" style="font-size:12px">委托成交时推送通知</div></div>
+            <div class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-weight:600">风控预警通知</div><div class="text-muted" style="font-size:12px">触发风控规则时通知</div></div>
+            <div class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-weight:600">数据同步通知</div><div class="text-muted" style="font-size:12px">数据同步完成或异常时通知</div></div>
+            <div class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-weight:600">每日复盘提醒</div><div class="text-muted" style="font-size:12px">收盘后提醒复盘</div></div>
+            <div class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: UI -->
+    <div class="tab-panel" data-group="st" data-panel="ui">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">界面偏好</h3></div>
+        <div style="display:flex;flex-direction:column;gap:20px;max-width:500px">
+          <div>
+            <label class="form-label">主题</label>
+            <div style="display:flex;gap:12px">
+              <label class="flex items-center gap-2"><input type="radio" name="theme" checked> 跟随系统</label>
+              <label class="flex items-center gap-2"><input type="radio" name="theme"> 浅色</label>
+              <label class="flex items-center gap-2"><input type="radio" name="theme"> 深色</label>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">涨跌颜色</label>
+            <div style="display:flex;gap:12px">
+              <label class="flex items-center gap-2"><input type="radio" name="color" checked> 红涨绿跌 (A股)</label>
+              <label class="flex items-center gap-2"><input type="radio" name="color"> 绿涨红跌 (美股)</label>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">默认图表类型</label>
+            <select class="form-select"><option>K线图</option><option>分时图</option><option>折线图</option></select>
+          </div>
+          <div>
+            <label class="form-label">表格每页行数</label>
+            <select class="form-select"><option>20</option><option>50</option><option>100</option></select>
+          </div>
+          <div>
+            <label class="form-label">侧边栏</label>
+            <div style="display:flex;gap:12px">
+              <label class="flex items-center gap-2"><input type="radio" name="sidebar" checked> 展开</label>
+              <label class="flex items-center gap-2"><input type="radio" name="sidebar"> 默认收起</label>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px"><button class="btn btn-primary" onclick="showToast('界面偏好已保存','success')">保存偏好</button></div>
+      </div>
+    </div>
+
+    <!-- Tab: System Info -->
+    <div class="tab-panel" data-group="st" data-panel="system">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">系统信息</h3></div>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td style="font-weight:600;width:200px">版本</td><td>TraderMate v1.0.0-beta</td></tr>
+              <tr><td style="font-weight:600">API 版本</td><td>v1</td></tr>
+              <tr><td style="font-weight:600">Python</td><td>3.11.8</td></tr>
+              <tr><td style="font-weight:600">数据库</td><td>MySQL 8.0 <span class="badge badge-success">连接正常</span></td></tr>
+              <tr><td style="font-weight:600">Redis</td><td>7.2 <span class="badge badge-success">连接正常</span></td></tr>
+              <tr><td style="font-weight:600">Worker</td><td>Celery 5.3 <span class="badge badge-destructive">异常</span></td></tr>
+              <tr><td style="font-weight:600">最后部署</td><td>2026-03-13 08:00:00</td></tr>
+              <tr><td style="font-weight:600">运行时间</td><td>1天 6小时 35分钟</td></tr>
+              <tr><td style="font-weight:600">磁盘使用</td><td>42.5 GB / 100 GB (42.5%)</td></tr>
+              <tr><td style="font-weight:600">内存使用</td><td>3.2 GB / 8 GB (40%)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+// Notification toggles
+document.querySelectorAll('[data-panel="notification"] .toggle-switch input').forEach(t=>{
+  t.addEventListener('change',function(){showToast(this.checked?'通知已启用':'通知已禁用',this.checked?'success':'warning')});
+});
+// Radio groups
+['theme','color','sidebar'].forEach(name=>{
+  document.querySelectorAll('input[name="'+name+'"]').forEach(r=>{
+    r.addEventListener('change',function(){showToast('偏好已更新','success')});
+  });
+});
+</script>
+</body>
+</html>

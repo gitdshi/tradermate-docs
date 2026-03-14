@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TraderMate — AI 助手</title>
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.tailwindcss.com?v=3.4"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content" id="main">
+
+    <div class="page-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">AI 助手</h1>
+          <p class="page-subtitle">智能问答 · 策略生成 · 市场解读 · 代码辅助</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="showConfirm('确认清空对话历史？',()=>showToast('对话已清空','success'))">清空对话</button>
+          <select class="form-select" style="max-width:160px" onchange="showToast('已切换到 '+this.value,'success')"><option>GPT-4o</option><option>Claude 3.5</option><option>Qwen 2.5</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs" data-group="ai">
+      <button class="tab-btn active" data-tab="chat">AI 对话</button>
+      <button class="tab-btn" data-tab="codegen">代码生成</button>
+      <button class="tab-btn" data-tab="insight">市场洞察</button>
+      <button class="tab-btn" data-tab="suggest">策略建议</button>
+    </div>
+
+    <!-- Tab: Chat -->
+    <div class="tab-panel active" data-group="ai" data-panel="chat">
+      <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 260px);min-height:400px">
+        <div class="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px">
+          <!-- System -->
+          <div class="chat-msg system">
+            <div class="chat-bubble system">你好！我是 TraderMate AI 助手，可以帮你分析市场、生成策略代码、解读回测结果。有什么需要帮助的吗？</div>
+          </div>
+          <!-- User -->
+          <div class="chat-msg user">
+            <div class="chat-bubble user">帮我分析一下贵州茅台近期的走势，给出技术面和基本面的综合建议。</div>
+          </div>
+          <!-- AI Response -->
+          <div class="chat-msg system">
+            <div class="chat-bubble system">
+              <h4 style="font-weight:600;margin-bottom:8px">📊 贵州茅台 (600519.SH) 综合分析</h4>
+              
+              <p style="font-weight:600;margin:12px 0 4px">技术面：</p>
+              <ul style="margin:0;padding-left:16px;font-size:13px">
+                <li>当前价 ¥1,856，位于 MA5/MA10/MA20 上方，均线多头排列</li>
+                <li>RSI(14) = 62.5，处于中性偏多区域</li>
+                <li>MACD 金叉确认，DIF > DEA，红柱放大</li>
+                <li>布林带中轨上方运行，趋势偏强</li>
+                <li>支撑位: ¥1,840 / ¥1,820 · 压力位: ¥1,875 / ¥1,895</li>
+              </ul>
+
+              <p style="font-weight:600;margin:12px 0 4px">基本面：</p>
+              <ul style="margin:0;padding-left:16px;font-size:13px">
+                <li>PE(TTM) 28.5，略高于行业中位 18.5</li>
+                <li>ROE 32.8%，保持高质量盈利</li>
+                <li>2025Q4 营收 382.5 亿，同比 +18.2%</li>
+                <li>现金流充沛，分红率稳定</li>
+              </ul>
+
+              <p style="font-weight:600;margin:12px 0 4px">综合建议：</p>
+              <div style="background:var(--muted);padding:12px;border-radius:6px;font-size:13px">
+                <span class="badge badge-success" style="margin-bottom:6px">看多</span>
+                <p>技术面多头格局明确，基本面业绩增长稳健。建议在 ¥1,840 支撑位附近加仓，止损设在 ¥1,795 (MA60)。目标位 ¥1,895-1,920。</p>
+              </div>
+            </div>
+          </div>
+          <!-- User -->
+          <div class="chat-msg user">
+            <div class="chat-bubble user">帮我写一个基于 MACD 的交易策略。</div>
+          </div>
+          <!-- AI Code Response -->
+          <div class="chat-msg system">
+            <div class="chat-bubble system">
+              <p>这是一个基于 MACD 金叉/死叉的交易策略：</p>
+              <pre class="code-block" style="margin:8px 0;font-size:12px"><code>class MACDStrategy:
+    def __init__(self, fast=12, slow=26, signal=9):
+        self.fast = fast
+        self.slow = slow
+        self.signal = signal
+    
+    def generate_signals(self, df):
+        exp1 = df['close'].ewm(span=self.fast).mean()
+        exp2 = df['close'].ewm(span=self.slow).mean()
+        df['macd'] = exp1 - exp2
+        df['signal_line'] = df['macd'].ewm(span=self.signal).mean()
+        df['histogram'] = df['macd'] - df['signal_line']
+        
+        df['signal'] = 0
+        # 金叉买入
+        df.loc[(df['macd'] > df['signal_line']) & 
+               (df['macd'].shift(1) <= df['signal_line'].shift(1)), 
+               'signal'] = 1
+        # 死叉卖出
+        df.loc[(df['macd'] < df['signal_line']) & 
+               (df['macd'].shift(1) >= df['signal_line'].shift(1)), 
+               'signal'] = -1
+        return df</code></pre>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn btn-primary btn-sm" onclick="showToast('代码已复制到剪贴板','success')">复制代码</button>
+                <button class="btn btn-secondary btn-sm" onclick="showToast('已导入到策略编辑器','success')">导入到策略编辑器</button>
+                <button class="btn btn-ghost btn-sm" onclick="showToast('正在跳转到回测页面…','info')">立即回测</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div style="border-top:1px solid var(--border);padding:12px;display:flex;gap:8px;align-items:flex-end">
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-ghost btn-icon btn-sm" title="上传文件" onclick="showToast('请选择要上传的文件','info')">📎</button>
+            <button class="btn btn-ghost btn-icon btn-sm" title="插入数据" onclick="showToast('请选择要插入的数据集','info')">📊</button>
+          </div>
+          <textarea class="form-textarea" rows="1" style="flex:1;resize:none" placeholder="输入问题...支持策略分析、市场解读、代码生成等"></textarea>
+          <button class="btn btn-primary btn-icon" onclick="showToast('AI 正在思考中…','info')">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Code Generation -->
+    <div class="tab-panel" data-group="ai" data-panel="codegen">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">需求描述</h3></div>
+          <textarea class="form-textarea" rows="8" placeholder="用自然语言描述你的策略逻辑...
+例如: 当RSI低于30且MACD柱状图由负转正时买入，当RSI高于70时卖出，每次交易100股"></textarea>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="showToast('代码生成中，请稍候…','info')">生成代码</button>
+            <select class="form-select" style="max-width:140px"><option>Python</option><option>Pine Script</option></select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">生成结果</h3><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="showToast('代码已复制','success')">复制</button><button class="btn btn-ghost btn-sm" onclick="showToast('已导入到策略编辑器','success')">导入策略</button></div></div>
+          <pre class="code-block" style="min-height:240px;font-size:12px"><code># AI 生成的策略代码将显示在这里
+# 点击"生成代码"开始...</code></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">常用模板</h3></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+          <button class="btn btn-secondary btn-sm" style="text-align:left" onclick="showToast('已加载趋势跟踪模板','success')">📈 趋势跟踪策略</button>
+          <button class="btn btn-secondary btn-sm" style="text-align:left" onclick="showToast('已加载均值回归模板','success')">🔄 均值回归策略</button>
+          <button class="btn btn-secondary btn-sm" style="text-align:left" onclick="showToast('已加载多因子模板','success')">📊 多因子选股</button>
+          <button class="btn btn-secondary btn-sm" style="text-align:left" onclick="showToast('已加载动量突破模板','success')">⚡ 动量突破策略</button>
+          <button class="btn btn-secondary btn-sm" style="text-align:left" onclick="showToast('已加载风险平价模板','success')">🛡️ 风险平价组合</button>
+          <button class="btn btn-secondary btn-sm" style="text-align:left" onclick="showToast('已加载配对交易模板','success')">🔀 配对交易策略</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Market Insight -->
+    <div class="tab-panel" data-group="ai" data-panel="insight">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">AI 市场洞察 — 2026-03-14</h3><span class="badge badge-primary">自动更新</span></div>
+        
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card" style="border-left:3px solid var(--success)">
+            <h4 style="font-weight:600">🔥 今日热点</h4>
+            <p class="text-muted" style="font-size:13px;margin-top:4px">白酒板块集体走强，茅台五粮液领涨。AI概念股持续活跃，半导体产业链获资金关注。</p>
+          </div>
+          <div class="card" style="border-left:3px solid var(--primary)">
+            <h4 style="font-weight:600">📊 资金面分析</h4>
+            <p class="text-muted" style="font-size:13px;margin-top:4px">两市成交额1.28万亿，较昨日放量8.5%。北向资金净流入52.3亿，主要流入消费和科技板块。融资余额小幅回升。</p>
+          </div>
+          <div class="card" style="border-left:3px solid var(--warning)">
+            <h4 style="font-weight:600">⚠️ 风险提示</h4>
+            <p class="text-muted" style="font-size:13px;margin-top:4px">美联储议息会议临近(3/15)，市场波动可能加大。注意光伏板块技术面走弱，隆基绿能跌破20日均线。</p>
+          </div>
+          <div class="card" style="border-left:3px solid var(--success)">
+            <h4 style="font-weight:600">💡 策略建议</h4>
+            <p class="text-muted" style="font-size:13px;margin-top:4px">建议保持中等仓位(50-60%)，超配消费和科技，减配周期。关注美联储决议后的市场方向，短期可适当防守。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Strategy Suggestions -->
+    <div class="tab-panel" data-group="ai" data-panel="suggest">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">AI 策略优化建议</h3></div>
+        <p class="text-muted" style="margin-bottom:16px">基于你的交易历史和策略表现，AI 生成以下优化建议：</p>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card" style="border-left:3px solid var(--primary)">
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <div>
+                <h4 style="font-weight:600">DualMA_Cross 参数优化</h4>
+                <p class="text-muted" style="font-size:13px;margin-top:4px">建议将短期均线从5调整为8，长期均线从20调整为25，可减少假信号约15%，预期 Sharpe 提升至1.55。</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="showToast('参数已应用到 DualMA_Cross','success')">应用</button>
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--warning)">
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <div>
+                <h4 style="font-weight:600">行业集中度警告</h4>
+                <p class="text-muted" style="font-size:13px;margin-top:4px">白酒板块占比92.2%，远超30%阈值。建议分散到银行(25%)、光伏(20%)、科技(25%)，预期回撤降低40%。</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('已跳转到组合配置页','info')">查看配置</button>
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--success)">
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <div>
+                <h4 style="font-weight:600">新策略机会</h4>
+                <p class="text-muted" style="font-size:13px;margin-top:4px">检测到半导体板块出现量价齐升信号，建议关注配对交易机会。可参考 AI 生成的半导体动量策略。</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="showToast('AI 正在生成半导体动量策略…','info')">生成策略</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="shared.js"></script>
+</body>
+</html>

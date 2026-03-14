@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TraderMate — 模板市场</title>
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.tailwindcss.com?v=3.4"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content" id="main">
+
+    <div class="page-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">模板市场</h1>
+          <p class="page-subtitle">策略模板 · 因子库 · 工具集 · 社区贡献</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="showToast('请填写模板信息后发布','info')">发布模板</button>
+          <button class="btn btn-primary" onclick="showToast('已显示收藏列表','success')">我的收藏</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <input type="text" class="form-input" placeholder="🔍 搜索模板..." style="max-width:280px">
+      <select class="form-select" style="max-width:140px"><option>全部类别</option><option>CTA 策略</option><option>Alpha 因子</option><option>工具集</option><option>风控模板</option></select>
+      <select class="form-select" style="max-width:120px"><option>热门排序</option><option>最新发布</option><option>评分最高</option><option>下载最多</option></select>
+    </div>
+
+    <!-- Featured -->
+    <div class="card" style="background:linear-gradient(135deg,hsl(221 83% 53% / 0.1),hsl(262 83% 58% / 0.1));border:1px solid hsl(221 83% 53% / 0.3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+        <div>
+          <span class="badge badge-primary" style="margin-bottom:8px">⭐ 本周推荐</span>
+          <h3 style="font-weight:700;font-size:18px;margin:4px 0">多因子 Alpha 选股框架 v2</h3>
+          <p class="text-muted" style="font-size:13px">集成动量、价值、质量、规模四大因子，支持自定义因子权重和IC检验。12个月回测年化收益 28.5%。</p>
+          <div style="display:flex;gap:12px;margin-top:8px;font-size:13px">
+            <span>⭐ 4.8/5</span><span>📥 1,250 下载</span><span>👤 quant_master</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="white-space:nowrap" onclick="showToast('多因子 Alpha 框架 v2 已下载','success')">免费下载</button>
+      </div>
+    </div>
+
+    <!-- Template Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:16px">
+      
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">双均线交叉策略</h3>
+          <span class="badge badge-primary">CTA</span>
+        </div>
+        <p class="text-muted" style="font-size:13px;margin:8px 0">经典双均线金叉/死叉策略，适合趋势行情。支持参数优化。</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted-foreground)">
+          <div style="display:flex;gap:12px"><span>⭐ 4.5</span><span>📥 856</span></div>
+          <span>by system</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary btn-sm">使用</button>
+          <button class="btn btn-ghost btn-sm">预览</button>
+          <button class="btn btn-ghost btn-sm">⭐ 收藏</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">RSI 反转策略</h3>
+          <span class="badge badge-primary">CTA</span>
+        </div>
+        <p class="text-muted" style="font-size:13px;margin:8px 0">RSI 超买超卖反转，结合成交量验证。适合震荡市。</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted-foreground)">
+          <div style="display:flex;gap:12px"><span>⭐ 4.3</span><span>📥 642</span></div>
+          <span>by system</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary btn-sm">使用</button>
+          <button class="btn btn-ghost btn-sm">预览</button>
+          <button class="btn btn-ghost btn-sm">⭐ 收藏</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">布林带突破</h3>
+          <span class="badge badge-primary">CTA</span>
+        </div>
+        <p class="text-muted" style="font-size:13px;margin:8px 0">布林带上下轨突破交易，带止损止盈逻辑。</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted-foreground)">
+          <div style="display:flex;gap:12px"><span>⭐ 4.1</span><span>📥 523</span></div>
+          <span>by system</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary btn-sm">使用</button>
+          <button class="btn btn-ghost btn-sm">预览</button>
+          <button class="btn btn-ghost btn-sm">⭐ 收藏</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">IC 加权多因子</h3>
+          <span class="badge badge-warning">Alpha</span>
+        </div>
+        <p class="text-muted" style="font-size:13px;margin:8px 0">根据因子 IC 值动态调整权重的多因子选股框架。</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted-foreground)">
+          <div style="display:flex;gap:12px"><span>⭐ 4.7</span><span>📥 428</span></div>
+          <span>by alpha_seeker</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary btn-sm">使用</button>
+          <button class="btn btn-ghost btn-sm">预览</button>
+          <button class="btn btn-ghost btn-sm">⭐ 收藏</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">风险平价组合</h3>
+          <span class="badge badge-success">组合</span>
+        </div>
+        <p class="text-muted" style="font-size:13px;margin:8px 0">基于风险贡献均等化的资产配置框架，自动再平衡。</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted-foreground)">
+          <div style="display:flex;gap:12px"><span>⭐ 4.6</span><span>📥 315</span></div>
+          <span>by risk_labs</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary btn-sm">使用</button>
+          <button class="btn btn-ghost btn-sm">预览</button>
+          <button class="btn btn-ghost btn-sm">⭐ 收藏</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">事件驱动策略</h3>
+          <span class="badge badge-destructive">实验</span>
+        </div>
+        <p class="text-muted" style="font-size:13px;margin:8px 0">基于财经事件（财报、公告）的事件驱动交易框架，含 NLP 解析。</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted-foreground)">
+          <div style="display:flex;gap:12px"><span>⭐ 4.2</span><span>📥 189</span></div>
+          <span>by nlp_trader</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary btn-sm">使用</button>
+          <button class="btn btn-ghost btn-sm">预览</button>
+          <button class="btn btn-ghost btn-sm">⭐ 收藏</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div style="display:flex;justify-content:center;gap:4px;margin-top:24px">
+      <button class="btn btn-ghost btn-sm" disabled>← 上一页</button>
+      <button class="btn btn-primary btn-sm">1</button>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('加载第 2 页…','info')">2</button>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('加载第 3 页…','info')">3</button>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('加载第 2 页…','info')">下一页 →</button>
+    </div>
+
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+// Card action buttons
+document.querySelectorAll('.card').forEach(card=>{
+  const title = (card.querySelector('.card-title')||{}).textContent||'';
+  card.querySelectorAll('.btn-sm').forEach(btn=>{
+    const t = btn.textContent.trim();
+    if(t==='使用') btn.onclick=()=>showToast('已导入模板「'+title+'」到策略编辑器','success');
+    else if(t==='预览') btn.onclick=()=>showToast('预览「'+title+'」','info');
+    else if(t.includes('收藏')) btn.onclick=function(){this.textContent='✓ 已收藏';showToast('已收藏「'+title+'」','success')};
+  });
+});
+// Filters
+(function(){
+  const search=document.querySelector('.filter-bar .form-input');
+  const selects=document.querySelectorAll('.filter-bar .form-select');
+  const cards=[...document.querySelectorAll('main > div[style*="grid-template"]> .card')];
+  function filter(){
+    const q=search.value.toLowerCase();
+    const cat=selects[0].value;
+    cards.forEach(c=>{
+      const txt=c.textContent.toLowerCase();
+      const badge=(c.querySelector('.card-header .badge')||{}).textContent||'';
+      const matchQ=!q||txt.includes(q);
+      const matchC=cat==='全部类别'||badge.includes(cat.replace(/\s*策略|因子|工具集|风控模板/g,'').trim())||txt.includes(cat);
+      c.style.display=matchQ&&matchC?'':'none';
+    });
+  }
+  search.addEventListener('input',filter);
+  selects.forEach(s=>s.addEventListener('change',filter));
+})();
+</script>
+</body>
+</html>

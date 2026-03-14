@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TraderMate — 行情数据</title>
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.tailwindcss.com?v=3.4"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content" id="main">
+
+    <div class="page-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">行情数据</h1>
+          <p class="page-subtitle">实时行情 · 数据同步管理 · 多维度市场分析</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="activateTab('md','sync');showToast('已跳转到数据同步','info')">数据同步</button>
+          <button class="btn btn-secondary" onclick="showToast('数据已导出到 CSV 文件','success')">导出数据</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs" data-group="md">
+      <button class="tab-btn active" data-tab="quotes">实时行情</button>
+      <button class="tab-btn" data-tab="kline">K线图表</button>
+      <button class="tab-btn" data-tab="sync">数据同步</button>
+      <button class="tab-btn" data-tab="calendar">财经日历</button>
+      <button class="tab-btn" data-tab="sentiment">市场情绪</button>
+    </div>
+
+    <!-- Tab: Real-time Quotes -->
+    <div class="tab-panel active" data-group="md" data-panel="quotes">
+      <div class="filter-bar">
+        <input type="text" class="form-input" placeholder="🔍 代码/名称..." style="max-width:220px">
+        <select class="form-select" style="max-width:140px"><option>全部行业</option><option>白酒</option><option>银行</option><option>保险</option><option>光伏</option><option>安防</option><option>电力</option></select>
+        <select class="form-select" style="max-width:120px"><option>涨幅排序</option><option>跌幅排序</option><option>成交量</option></select>
+        <span class="text-muted" style="font-size:12px;margin-left:auto">数据源: Tushare · 延迟 &lt; 3s</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>代码</th><th>名称</th><th>行业</th><th>最新价</th><th>涨跌幅</th><th>成交量(万)</th><th>成交额(亿)</th><th>换手率</th><th>操作</th></tr></thead>
+          <tbody id="quoteTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: K-Line Chart -->
+    <div class="tab-panel" data-group="md" data-panel="kline">
+      <div class="card">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:12px">
+            <select class="form-select" style="max-width:180px">
+              <option>600519.SH 贵州茅台</option>
+              <option>000858.SZ 五粮液</option>
+              <option>601318.SH 中国平安</option>
+            </select>
+            <div class="tabs" data-group="kp" style="border:none">
+              <button class="tab-btn active" data-tab="d">日K</button>
+              <button class="tab-btn" data-tab="w">周K</button>
+              <button class="tab-btn" data-tab="m">月K</button>
+              <button class="tab-btn" data-tab="m5">5分</button>
+              <button class="tab-btn" data-tab="m15">15分</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="this.classList.toggle('active');showToast('MA 指标已切换','info')">MA</button>
+            <button class="btn btn-ghost btn-sm" onclick="this.classList.toggle('active');showToast('MACD 指标已切换','info')">MACD</button>
+            <button class="btn btn-ghost btn-sm" onclick="this.classList.toggle('active');showToast('KDJ 指标已切换','info')">KDJ</button>
+            <button class="btn btn-ghost btn-sm" onclick="this.classList.toggle('active');showToast('VOL 指标已切换','info')">VOL</button>
+          </div>
+        </div>
+        <div class="chart-placeholder" style="height:360px">
+          <canvas id="klineCanvas"></canvas>
+        </div>
+        <div class="chart-placeholder" style="height:100px;margin-top:4px;border-top:1px solid var(--border)">
+          <div style="padding:8px;text-align:center;color:var(--muted-foreground);font-size:12px">成交量柱形图</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Data Sync -->
+    <div class="tab-panel" data-group="md" data-panel="sync">
+      <div class="stat-grid cols-4">
+        <div class="stat-card"><div class="stat-label">同步状态</div><div class="stat-value"><span class="status-dot online"></span> 正常</div></div>
+        <div class="stat-card"><div class="stat-label">最后同步</div><div class="stat-value" style="font-size:18px">14:30:02</div></div>
+        <div class="stat-card"><div class="stat-label">股票总数</div><div class="stat-value">5,128</div></div>
+        <div class="stat-card"><div class="stat-label">数据覆盖</div><div class="stat-value">2010 ~ 今</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">同步任务</h3><button class="btn btn-primary btn-sm" onclick="showToast('任务创建功能（原型演示）','info')">+ 创建任务</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>任务名</th><th>类型</th><th>频率</th><th>最后运行</th><th>状态</th><th>记录数</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>日线数据</td><td>daily</td><td>每日 16:30</td><td>2026-03-14 16:30</td><td><span class="badge badge-success">成功</span></td><td>5,128</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('日线同步任务已启动','success')">运行</button><button class="btn btn-ghost btn-sm" onclick="showToast('日志: 上次同步5,128条记录，耗时42s','info')">日志</button></td></tr>
+              <tr><td>分钟数据</td><td>minute</td><td>每5分钟</td><td>2026-03-14 14:30</td><td><span class="badge badge-success">成功</span></td><td>12,560</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('分钟同步任务已启动','success')">运行</button><button class="btn btn-ghost btn-sm" onclick="showToast('日志: 上次同步12,560条记录','info')">日志</button></td></tr>
+              <tr><td>基本面数据</td><td>fundamental</td><td>每周一</td><td>2026-03-10 08:00</td><td><span class="badge badge-success">成功</span></td><td>5,128</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('基本面同步任务已启动','success')">运行</button><button class="btn btn-ghost btn-sm" onclick="showToast('日志: 数据完整，5,128条','info')">日志</button></td></tr>
+              <tr><td>财务数据</td><td>financial</td><td>季报发布后</td><td>2026-01-31 20:00</td><td><span class="badge badge-warning">部分</span></td><td>4,850</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('财务同步任务已启动','success')">运行</button><button class="btn btn-ghost btn-sm" onclick="showToast('日志: 部分数据缺失，278条未获取','warning')">日志</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">当前同步进度</h3><span class="badge badge-success">空闲</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+        <p class="text-muted" style="font-size:12px;margin-top:4px">上次同步耗时 2分18秒 · 下次预定 16:30</p>
+      </div>
+    </div>
+
+    <!-- Tab: Calendar -->
+    <div class="tab-panel" data-group="md" data-panel="calendar">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">财经日历 — 2026年3月</h3>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="showToast('已切换到上月','info')">← 上月</button>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('已切换到下月','info')">下月 →</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+          <div class="card" style="border-left:3px solid var(--warning)">
+            <div style="font-size:12px;color:var(--muted-foreground)">3月15日 周五</div>
+            <div style="font-weight:600;margin-top:4px">美联储利率决议</div>
+            <span class="badge badge-warning">重要</span>
+          </div>
+          <div class="card" style="border-left:3px solid var(--primary)">
+            <div style="font-size:12px;color:var(--muted-foreground)">3月17日 周一</div>
+            <div style="font-weight:600;margin-top:4px">中国 LPR 公布</div>
+            <span class="badge badge-primary">一般</span>
+          </div>
+          <div class="card" style="border-left:3px solid var(--destructive)">
+            <div style="font-size:12px;color:var(--muted-foreground)">3月20日 周四</div>
+            <div style="font-weight:600;margin-top:4px">A股期权到期日</div>
+            <span class="badge badge-destructive">高影响</span>
+          </div>
+          <div class="card" style="border-left:3px solid var(--primary)">
+            <div style="font-size:12px;color:var(--muted-foreground)">3月25日 周二</div>
+            <div style="font-weight:600;margin-top:4px">PMI 数据发布</div>
+            <span class="badge badge-primary">一般</span>
+          </div>
+          <div class="card" style="border-left:3px solid var(--warning)">
+            <div style="font-size:12px;color:var(--muted-foreground)">3月31日 周一</div>
+            <div style="font-weight:600;margin-top:4px">季末结算日</div>
+            <span class="badge badge-warning">重要</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Sentiment -->
+    <div class="tab-panel" data-group="md" data-panel="sentiment">
+      <div class="stat-grid cols-3">
+        <div class="stat-card">
+          <div class="stat-label">市场情绪指数</div>
+          <div class="gauge-container">
+            <div style="width:120px;height:60px;border-radius:120px 120px 0 0;background:conic-gradient(from 180deg,var(--destructive) 0deg,var(--warning) 90deg,var(--success) 180deg);position:relative;overflow:hidden">
+              <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80px;height:40px;background:var(--card);border-radius:80px 80px 0 0"></div>
+            </div>
+            <div style="font-size:24px;font-weight:700;margin-top:4px">68</div>
+            <div class="text-muted" style="font-size:12px">偏多 · 贪婪区间</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">涨停板数</div>
+          <div class="stat-value text-success">85</div>
+          <div class="text-muted" style="font-size:12px">跌停 12</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">两市成交额</div>
+          <div class="stat-value">1.28 万亿</div>
+          <div class="text-muted" style="font-size:12px">较昨日 +8.5%</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">行业热力图</h3></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+            <div class="heatmap-cell positive" style="padding:12px;text-align:center"><b>白酒</b><br><span style="font-size:12px">+3.2%</span></div>
+            <div class="heatmap-cell positive" style="padding:12px;text-align:center"><b>AI</b><br><span style="font-size:12px">+2.8%</span></div>
+            <div class="heatmap-cell positive" style="padding:12px;text-align:center"><b>新能源</b><br><span style="font-size:12px">+1.5%</span></div>
+            <div class="heatmap-cell negative" style="padding:12px;text-align:center"><b>银行</b><br><span style="font-size:12px">-0.3%</span></div>
+            <div class="heatmap-cell positive" style="padding:12px;text-align:center"><b>半导体</b><br><span style="font-size:12px">+2.1%</span></div>
+            <div class="heatmap-cell negative" style="padding:12px;text-align:center"><b>地产</b><br><span style="font-size:12px">-1.8%</span></div>
+            <div class="heatmap-cell positive" style="padding:12px;text-align:center"><b>医药</b><br><span style="font-size:12px">+0.8%</span></div>
+            <div class="heatmap-cell neutral" style="padding:12px;text-align:center"><b>钢铁</b><br><span style="font-size:12px">+0.1%</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">资金流向</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>行业</th><th>净流入(亿)</th><th>5日净流入</th></tr></thead>
+              <tbody>
+                <tr><td>白酒</td><td class="text-success">+28.5</td><td class="text-success">+65.2</td></tr>
+                <tr><td>AI 概念</td><td class="text-success">+22.1</td><td class="text-success">+48.7</td></tr>
+                <tr><td>半导体</td><td class="text-success">+15.3</td><td class="text-success">+31.0</td></tr>
+                <tr><td>银行</td><td class="text-destructive">-8.2</td><td class="text-destructive">-12.5</td></tr>
+                <tr><td>地产</td><td class="text-destructive">-18.6</td><td class="text-destructive">-45.8</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const quoteBody = document.getElementById('quoteTable');
+MOCK.stocks.forEach(s => {
+  const vol = (Math.random()*5000+500).toFixed(0);
+  const amt = (Math.random()*50+5).toFixed(1);
+  const turn = (Math.random()*5+0.5).toFixed(2);
+  quoteBody.innerHTML += `<tr>
+    <td class="font-mono">${s.code}</td><td>${s.name}</td><td>${s.industry}</td>
+    <td style="font-weight:600">¥${s.price.toFixed(2)}</td>
+    <td class="${pnlColor(s.change)}" style="font-weight:600">${pnlSign(s.change)}${s.change.toFixed(2)}%</td>
+    <td>${Number(vol).toLocaleString()}</td><td>${amt}</td><td>${turn}%</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="showToast('查看 ${s.name} 详情','info')">详情</button><button class="btn btn-ghost btn-sm" onclick="showToast('${s.name} 已加入自选','success')">加自选</button></td>
+  </tr>`;
+});
+
+// Draw simple candlestick placeholder
+function drawKline() {
+  const c = document.getElementById('klineCanvas');
+  if (!c || !c.parentElement.offsetWidth) return;
+  const ctx = c.getContext('2d');
+  const W = c.parentElement.clientWidth, H = c.parentElement.clientHeight;
+  c.width = W; c.height = H;
+  const pad = 40;
+  const bars = 30;
+  const barW = (W - pad*2) / bars;
+  let prev = 1850;
+  for (let i = 0; i < bars; i++) {
+    const open = prev + (Math.random()-0.48)*20;
+    const close = open + (Math.random()-0.48)*25;
+    const high = Math.max(open,close) + Math.random()*10;
+    const low = Math.min(open,close) - Math.random()*10;
+    prev = close;
+    const minP = 1800, maxP = 1920;
+    const x = pad + i*barW;
+    const yO = H - pad - ((open-minP)/(maxP-minP))*(H-pad*2);
+    const yC = H - pad - ((close-minP)/(maxP-minP))*(H-pad*2);
+    const yH = H - pad - ((high-minP)/(maxP-minP))*(H-pad*2);
+    const yL = H - pad - ((low-minP)/(maxP-minP))*(H-pad*2);
+    const color = close >= open ? '#ef4444' : '#10b981';
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    // wick
+    ctx.beginPath(); ctx.moveTo(x+barW/2, yH); ctx.lineTo(x+barW/2, yL); ctx.stroke();
+    // body
+    ctx.fillRect(x+2, Math.min(yO,yC), barW-4, Math.abs(yC-yO)||1);
+  }
+}
+window.addEventListener('load', drawKline);
+window.addEventListener('resize', drawKline);
+
+// Quote filters
+(function(){
+  var search=document.querySelector('.filter-bar .form-input');
+  var selInd=document.querySelectorAll('.filter-bar .form-select')[0];
+  function filterQ(){
+    var q=(search?search.value:'').toLowerCase();
+    var ind=selInd?selInd.value:'';
+    document.getElementById('quoteTable').querySelectorAll('tr').forEach(function(row){
+      var code=row.cells[0].textContent.toLowerCase();
+      var name=row.cells[1].textContent.toLowerCase();
+      var industry=row.cells[2].textContent;
+      var show=true;
+      if(q&&code.indexOf(q)<0&&name.indexOf(q)<0)show=false;
+      if(ind&&ind!=='全部行业'&&industry!==ind)show=false;
+      row.style.display=show?'':'none';
+    });
+  }
+  if(search) search.addEventListener('input',filterQ);
+  if(selInd) selInd.addEventListener('change',filterQ);
+})();
+</script>
+</body>
+</html>

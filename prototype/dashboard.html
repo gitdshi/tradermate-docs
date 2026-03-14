@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TraderMate — Dashboard</title>
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.tailwindcss.com?v=3.4"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content" id="main">
+
+    <div class="page-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">实时概览 · 最后更新 14:35:02</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="toggleDark()">${icon('moon')} 切换主题</button>
+          <button class="btn btn-secondary" onclick="showToast('数据已刷新','success');drawNavChart();drawPieChart()">${icon('refresh-cw')} 刷新</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="stat-grid cols-4">
+      <div class="stat-card">
+        <div class="stat-icon">${icon('wallet')}</div>
+        <div class="stat-value">¥ 1,256,800</div>
+        <div class="stat-label">总资产</div>
+        <div class="stat-trend up">+2.35% 今日</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">${icon('trending-up')}</div>
+        <div class="stat-value text-success">+¥ 28,960</div>
+        <div class="stat-label">今日盈亏</div>
+        <div class="stat-trend up">+2.35%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">${icon('activity')}</div>
+        <div class="stat-value">6</div>
+        <div class="stat-label">活跃策略</div>
+        <div class="stat-trend neutral">4 运行中</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">${icon('bell')}</div>
+        <div class="stat-value text-warning">3</div>
+        <div class="stat-label">未处理告警</div>
+        <div class="stat-trend down">1 严重</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">组合净值曲线</h3>
+          <div class="tabs" data-group="curve">
+            <button class="tab-btn active" data-tab="1w">1周</button>
+            <button class="tab-btn" data-tab="1m">1月</button>
+            <button class="tab-btn" data-tab="3m">3月</button>
+            <button class="tab-btn" data-tab="ytd">今年</button>
+          </div>
+        </div>
+        <div class="chart-placeholder" style="height:220px" id="navChart">
+          <canvas id="navCanvas"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">持仓分布</h3>
+        </div>
+        <div class="chart-placeholder" style="height:220px" id="pieChart">
+          <canvas id="pieCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Positions -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">当前持仓</h3>
+        <a href="portfolio.html" class="btn btn-ghost btn-sm">查看全部 →</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>代码</th><th>名称</th><th>策略</th><th>方向</th><th>数量</th><th>成本</th><th>现价</th><th>盈亏</th><th>盈亏%</th></tr>
+          </thead>
+          <tbody id="posTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Orders + Alerts -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">最近委托</h3>
+          <a href="trading.html" class="btn btn-ghost btn-sm">全部 →</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>时间</th><th>代码</th><th>方向</th><th>价格</th><th>数量</th><th>状态</th></tr></thead>
+            <tbody id="orderTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">最新告警</h3>
+          <a href="alerts.html" class="btn btn-ghost btn-sm">全部 →</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>时间</th><th>类型</th><th>级别</th><th>消息</th><th>状态</th></tr></thead>
+            <tbody id="alertTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strategy Status List -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">策略运行状态</h3>
+        <a href="strategies.html" class="btn btn-ghost btn-sm">管理 →</a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding-top:4px">
+        <div class="card" style="border-left:3px solid var(--success)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b>DualMA_Cross</b><span class="badge badge-success">运行中</span>
+          </div>
+          <div class="text-muted" style="font-size:13px;margin-top:4px">今日收益 +¥3,600 · Sharpe 1.42</div>
+        </div>
+        <div class="card" style="border-left:3px solid var(--success)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b>RSI_Reversal</b><span class="badge badge-success">运行中</span>
+          </div>
+          <div class="text-muted" style="font-size:13px;margin-top:4px">今日收益 +¥3,900 · Sharpe 1.18</div>
+        </div>
+        <div class="card" style="border-left:3px solid var(--primary)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b>MyAlpha01</b><span class="badge badge-primary">回测中</span>
+          </div>
+          <div class="text-muted" style="font-size:13px;margin-top:4px">进度 67% · 预计剩余 3 分钟</div>
+        </div>
+        <div class="card" style="border-left:3px solid var(--muted-foreground)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b>MeanRevert_v2</b><span class="badge badge-muted">草稿</span>
+          </div>
+          <div class="text-muted" style="font-size:13px;margin-top:4px">v2 · 待验证</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+// Replace template literals in static HTML
+document.querySelectorAll('.stat-icon, .btn').forEach(el => {
+  // icons are already injected via shared.js icon() won't work in static HTML
+});
+
+// Populate tables
+const posBody = document.getElementById('posTable');
+MOCK.positions.forEach(p => {
+  posBody.innerHTML += `<tr>
+    <td class="font-mono">${p.symbol}</td><td>${p.name}</td><td>${p.strategy}</td>
+    <td><span class="badge badge-success">${p.dir}</span></td>
+    <td>${p.qty}</td><td>¥${p.entry.toFixed(2)}</td><td>¥${p.current.toFixed(2)}</td>
+    <td class="${pnlColor(p.pnl)}">${pnlSign(p.pnl)}¥${Math.abs(p.pnl).toLocaleString()}</td>
+    <td class="${pnlColor(p.pnlPct)}">${pnlSign(p.pnlPct)}${p.pnlPct.toFixed(2)}%</td>
+  </tr>`;
+});
+
+const orderBody = document.getElementById('orderTable');
+MOCK.orders.slice(0, 4).forEach(o => {
+  orderBody.innerHTML += `<tr>
+    <td>${o.time}</td><td class="font-mono">${o.symbol}</td>
+    <td><span class="badge ${o.dir === '买入' ? 'badge-success' : 'badge-destructive'}">${o.dir}</span></td>
+    <td>¥${o.price.toFixed(2)}</td><td>${o.qty}</td><td>${statusBadge(o.status)}</td>
+  </tr>`;
+});
+
+const alertBody = document.getElementById('alertTable');
+MOCK.alerts.forEach(a => {
+  alertBody.innerHTML += `<tr>
+    <td>${a.time}</td><td>${a.type}</td><td>${statusBadge(a.level)}</td>
+    <td>${a.msg}</td><td>${statusBadge(a.status)}</td>
+  </tr>`;
+});
+
+// Draw simple NAV chart on canvas
+function drawNavChart() {
+  const c = document.getElementById('navCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.parentElement.clientWidth; const H = c.parentElement.clientHeight;
+  c.width = W; c.height = H;
+  const points = [100,101,99.5,102,104,103,105,107,106,108,110,109,111,113,112,115,114,116,118,120,119,121,123,122,125];
+  const min = Math.min(...points); const max = Math.max(...points);
+  const padX = 40, padY = 20;
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#3b82f6';
+  ctx.lineWidth = 2; ctx.beginPath();
+  points.forEach((v, i) => {
+    const x = padX + (i / (points.length - 1)) * (W - padX * 2);
+    const y = H - padY - ((v - min) / (max - min)) * (H - padY * 2);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  // Fill area
+  const lastX = padX + (1) * (W - padX * 2);
+  ctx.lineTo(lastX, H - padY); ctx.lineTo(padX, H - padY); ctx.closePath();
+  ctx.fillStyle = (ctx.strokeStyle || '#3b82f6') + '18'; ctx.fill();
+}
+
+function drawPieChart() {
+  const c = document.getElementById('pieCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.parentElement.clientWidth; const H = c.parentElement.clientHeight;
+  c.width = W; c.height = H;
+  const data = [
+    { label: '贵州茅台', value: 185600, color: '#3b82f6' },
+    { label: '五粮液', value: 78150, color: '#10b981' },
+    { label: '隆基绿能', value: 22180, color: '#ef4444' },
+    { label: '现金', value: 970870, color: '#6b7280' },
+  ];
+  const total = data.reduce((s, d) => s + d.value, 0);
+  let angle = -Math.PI / 2;
+  const cx = W / 2, cy = H / 2, r = Math.min(W, H) / 2 - 30;
+  data.forEach(d => {
+    const slice = (d.value / total) * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, angle, angle + slice);
+    ctx.fillStyle = d.color; ctx.fill();
+    // label
+    const mid = angle + slice / 2;
+    const lx = cx + (r * 0.65) * Math.cos(mid);
+    const ly = cy + (r * 0.65) * Math.sin(mid);
+    if (slice > 0.3) {
+      ctx.fillStyle = '#fff'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(d.label, lx, ly);
+      ctx.fillText((d.value / total * 100).toFixed(1) + '%', lx, ly + 14);
+    }
+    angle += slice;
+  });
+}
+
+window.addEventListener('load', () => { drawNavChart(); drawPieChart(); });
+window.addEventListener('resize', () => { drawNavChart(); drawPieChart(); });
+</script>
+</body>
+</html>
